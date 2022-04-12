@@ -22,7 +22,7 @@ Its output will be the following:
 	output_ML/T{T_i}/predictedQs_T{T_i}.csv 	(list of predicted Qs)
 	output_ML/T{T_i}/nonDW_T{T_i}.csv 	(list of non DW)
 
-
+Notice that in the future the Configurations/ and MLmodel/ directories will become local in order to contain the size of the repo
 
 _______________________________________________________________________________________________________________
 
