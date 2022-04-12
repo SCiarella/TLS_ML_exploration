@@ -31,7 +31,7 @@ ________________________________________________________________________________
 So the general idea is to do the following:
 (1) collect new data  
 (2) run [a] 
-(3) for the best X pairs of [a] run the NEB
+(3) for the best X pairs of (2) run the NEB
 (4) (optional) run [b]
 (5) either go to (1) or (3)  
 
