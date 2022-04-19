@@ -18,10 +18,13 @@ import multiprocessing as mp
 # This code takes all the available data (results from the NEB) and if they are more than the data that we already used to train the model, we retrain it 
 
 
-if len(sys.argv) > 1:
-    M = sys.argv[1]
-else:
-    print('Error because I have not received IN')
+# We need the desired M for the target df
+try:
+    with open("M_val.txt") as f:
+        M=int(f.readlines()[0].strip('\n'))
+        print('M={}'.format(M))
+except Exception as error:
+    print('Error: {}'.format(Exception))
     sys.exit()
 
 ndecimals=10
@@ -58,9 +61,6 @@ print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(li
 
 # I also have to include the pre-training data, which I load now to see if overall we gained data
 pretrain_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
-#pretrain_df['Delta_E']=pretrain_df['Delta_E']*1500
-#pretrain_df.to_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
-#sys.exit()
 
 #************
 # * Check wether or not you should retrain the model
@@ -82,14 +82,14 @@ all_pairs_df.i = all_pairs_df.i.round(ndecimals)
 all_pairs_df.j = all_pairs_df.j.round(ndecimals)
 
 
-# also it is possible that I have already used them, so I need to check this df
-training_df = used_data.copy()
-training_df = training_df[training_df['i']!='NotAvail']
-training_df['i'] = training_df['i'].astype(float)
-training_df['j'] = training_df['j'].astype(float)
-training_df['T'] = training_df['T'].astype(float)
-training_df.i = training_df.i.round(ndecimals)
-training_df.j = training_df.j.round(ndecimals)
+## also it is possible that I have already used them, so I need to check this df
+#training_df = used_data.copy()
+#training_df = training_df[training_df['i']!='NotAvail']
+#training_df['i'] = training_df['i'].astype(float)
+#training_df['j'] = training_df['j'].astype(float)
+#training_df['T'] = training_df['T'].astype(float)
+#training_df.i = training_df.i.round(ndecimals)
+#training_df.j = training_df.j.round(ndecimals)
 
 
 # split this task between parallel workers
@@ -99,34 +99,52 @@ n_chunks = len(chunks)
 print('We are going to submit {} chunks for the non dw \n'.format(n_chunks))
 
 
-
 def process_chunk(chunk):
     worker_df=pd.DataFrame()
     # I search for the given configuration
     for element in chunk:
         T,conf,i,j = element
-        # was this element used for training?
-        a = training_df[(training_df['T']==T)&(training_df['conf']==conf)&(training_df['i'].between(i-rounding_error,i+rounding_error))&(training_df['j'].between(j-rounding_error,j+rounding_error))]
+        # do we have it ?
+        a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
         if len(a)>1:
-            print('Error! multiple correspondences in train')
+            print('Error! multiple correspondences for {}'.format(element))
+            with pd.option_context('display.float_format', '{:0.20f}'.format):
+                print(a)
+                print(a[['i','j']])
             sys.exit()
         elif len(a)==1:
             worker_df = pd.concat([worker_df,a])
         else:
-            # do we have it ?
-            a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
-            if len(a)>1:
-                print('Error! multiple correspondences for {}'.format(element))
-                with pd.option_context('display.float_format', '{:0.20f}'.format):
-                    print(a)
-                    print(a[['i','j']])
-                sys.exit()
-            elif len(a)==1:
-                worker_df = pd.concat([worker_df,a])
-            else:
-                print('we do not have {}'.format(element))
-                sys.exit()
+            print('WARNING: we do not have {}'.format(element))
     return worker_df
+
+#def process_chunk(chunk):
+#    worker_df=pd.DataFrame()
+#    # I search for the given configuration
+#    for element in chunk:
+#        T,conf,i,j = element
+#        # was this element used for training?
+#        a = training_df[(training_df['T']==T)&(training_df['conf']==conf)&(training_df['i'].between(i-rounding_error,i+rounding_error))&(training_df['j'].between(j-rounding_error,j+rounding_error))]
+#        if len(a)>1:
+#            print('Error! multiple correspondences in train')
+#            sys.exit()
+#        elif len(a)==1:
+#            worker_df = pd.concat([worker_df,a])
+#        else:
+#            # do we have it ?
+#            a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
+#            if len(a)>1:
+#                print('Error! multiple correspondences for {}'.format(element))
+#                with pd.option_context('display.float_format', '{:0.20f}'.format):
+#                    print(a)
+#                    print(a[['i','j']])
+#                sys.exit()
+#            elif len(a)==1:
+#                worker_df = pd.concat([worker_df,a])
+#            else:
+#                print('we do not have {}'.format(element))
+#                sys.exit()
+#    return worker_df
         
 # Initialize the pool
 pool = mp.Pool(mp.cpu_count())
@@ -215,7 +233,8 @@ training_set = training_set.drop(columns=['i','j','conf'])
 training_set = TabularDataset(training_set).astype(float)
 
 # train
-predictor = TabularPredictor(label='is_dw', path=model_path, eval_metric='accuracy').fit(training_set, time_limit=time_limit,  presets=presets)
+# * I am excluding KNN because it is problematic
+predictor = TabularPredictor(label='is_dw', path=model_path, eval_metric='accuracy').fit(training_set, time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
 
 
 # store

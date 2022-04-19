@@ -3,8 +3,6 @@ import math
 import itertools
 import random
 import gzip
-import pyscal.catom as pca
-from ase import Atom, Atoms
 import gzip
 import io
 import os
@@ -13,10 +11,8 @@ import fnmatch
 import csv
 import glob
 from shutil import copyfile
-import pyscal.core as pc
 import numpy as np
 import pandas as pd
-sys.path.append('~/tls')
 
 
 # The goal of this code is to prepare a file for each T*/Conf*ij pair 
@@ -45,12 +41,17 @@ def aver(i,j,Lhalf):
 def displacement(ix,iy,iz,jx,jy,jz,Lhalf):
     return math.sqrt(dist(ix,jx,Lhalf)**2 +dist(iy,jy,Lhalf)**2 +dist(iz,jz,Lhalf)**2)
 
+
 # We need the desired M for the target df
-if len(sys.argv) > 1:
-    M = int(sys.argv[1])
-else:
-    print('Error because I have not received M')
+try:
+    with open("M_val.txt") as f:
+        M=int(f.readlines()[0].strip('\n'))
+        print('M={}'.format(M))
+except Exception as error:
+    print('Error: {}'.format(Exception))
     sys.exit()
+
+
 
 pairs_dir='Configurations/pairs'
 if not os.path.exists(pairs_dir):

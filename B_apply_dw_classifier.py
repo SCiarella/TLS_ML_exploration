@@ -11,16 +11,18 @@ import fnmatch
 import pickle
 import autogluon as ag
 from autogluon.tabular import TabularDataset, TabularPredictor
+import multiprocessing as mp
 
 # This code runs the dw vs non-dw classifier over all the pairs 
 
 
 
-
-if len(sys.argv) > 1:
-    M = sys.argv[1]
-else:
-    print('Error because I have not received IN')
+try:
+    with open("M_val.txt") as f:
+        M=int(f.readlines()[0].strip('\n'))
+        print('M={}'.format(M))
+except Exception as error:
+    print('Error: {}'.format(Exception))
     sys.exit()
 
 # The absolute position is not interesting, so I only report the distance from particle 0
@@ -43,6 +45,7 @@ for Tdir in list_T:
     T = Tdir.split('/T')[1].split('/')[0]
     list_df_pairs.extend( glob.glob('Configurations/pairs/pairs-T{}-*-M{}.pickle'.format(T,M)))
 print('\n* A total of {} glasses are availabe to process'.format(len(list_df_pairs)))
+
 
 # and I split the list in chunks to give to separate parallel workers
 pairs_per_worker=10
@@ -78,13 +81,9 @@ def process_chunk(chunk):
     return(worker_df)
 
 # Initialize the pool
-import multiprocessing as mp
 pool = mp.Pool(mp.cpu_count())
-#pool = mp.Pool(Nprocessors)
-
 # *** RUN THE PARALLEL FUNCTION
 results = pool.map(process_chunk, [chunk for chunk in chunks] )
-
 # Step 3: Don't forget to close
 pool.close()
 
@@ -96,10 +95,10 @@ for df_chunk in results:
 print('\n*Done reading the glasses')
 
 # load the df containing all the pairs that I found last time
-full_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+old_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
 
-if len(new_df)<len(full_df):
-    print('\n***Error: input_features* has lenght {} while I find only {} pairs. This is only possible if you have lost data!'.format(len(full_df),len(new_df)) )
+if len(new_df)<len(old_df):
+    print('\n***Error: input_features* has lenght {} while I find only {} pairs. This is only possible if you have lost data!'.format(len(old_df),len(new_df)) )
     sys.exit()
 
 # Convert the data to the correct types
@@ -109,24 +108,24 @@ new_df['j'] = new_df['j'].astype(float)
 new_df['T'] = new_df['T'].astype(float)
 new_df['Delta_E'] = new_df['Delta_E'].astype(float)
 new_df['conf'] = new_df['conf'].astype(str)
-full_df['i'] = full_df['i'].astype(float)
-full_df['j'] = full_df['j'].astype(float)
-full_df['T'] = full_df['T'].astype(float)
-full_df['conf'] = full_df['conf'].astype(str)
-full_df['Delta_E'] = full_df['Delta_E'].astype(float)
+old_df['i'] = old_df['i'].astype(float)
+old_df['j'] = old_df['j'].astype(float)
+old_df['T'] = old_df['T'].astype(float)
+old_df['conf'] = old_df['conf'].astype(str)
+old_df['Delta_E'] = old_df['Delta_E'].astype(float)
 for mi in range(int(M)):
     new_df['displacement_{}'.format(mi)] = new_df['displacement_{}'.format(mi)].astype(float) 
-    full_df['displacement_{}'.format(mi)] = full_df['displacement_{}'.format(mi)].astype(float) 
+    old_df['displacement_{}'.format(mi)] = old_df['displacement_{}'.format(mi)].astype(float) 
 
 # check which data are shared and which one are new
 print('\nCross-check and merging')
-used_df = pd.merge(full_df, new_df) 
+used_df = pd.merge(old_df, new_df) 
 Nnew=len(new_df)-len(used_df)
 
 print('\n\t@@@@ Overall we have {} pairs, of which {} are new from the last time you run this'.format(len(new_df),Nnew))
 
 # * Then I store this df to avoid having to redo it 
-full_df.to_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+new_df.to_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
 
 
 # *************
@@ -137,17 +136,23 @@ print('\nUsing the DW filter trained in {}'.format(classifier_save_path))
 
 print('\n* Classifier loading',flush=True)
 dwclassifier = TabularPredictor.load(classifier_save_path) 
+
 print('\n* Classifier starts',flush=True)
-new_pairs_isdw = full_df
-new_pairs_isdw['is_dw'] = dwclassifier.predict(full_df.drop(columns=['i','j','T','conf']))
+#new_pairs_isdw = new_df
+#in_for_pred =TabularDataset(new_df.drop(columns=['i','j','conf'])).astype(float)
+#the_predictions = dwclassifier.predict(in_for_pred)
+#new_pairs_isdw['is_dw'] = the_predictions
+new_df['is_dw'] = dwclassifier.predict(new_df)
 timeclass=time.time() -start
 
-filtered_dw = new_pairs_isdw[ new_pairs_isdw['is_dw']>0 ].drop(columns='is_dw') 
-filtered_non_dw = new_pairs_isdw[ new_pairs_isdw['is_dw']<1 ].drop(columns='is_dw') 
-print('From the {} pairs, only {} are classified as dw (in {} sec), so {} are non-dw'.format(len(new_pairs_isdw), len(filtered_dw), timeclass, len(filtered_non_dw)))
+#filtered_dw = new_pairs_isdw[ new_pairs_isdw['is_dw']>0 ].drop(columns='is_dw') 
+#filtered_non_dw = new_pairs_isdw[ new_pairs_isdw['is_dw']<1 ].drop(columns='is_dw') 
+filtered_dw = new_df[ new_df['is_dw']>0 ] 
+filtered_non_dw = new_df[ new_df['is_dw']<1 ] 
+print('From the {} pairs, only {} are classified as dw (in {} sec = {} sec per pair), so {} are non-dw'.format(len(new_df), len(filtered_dw), timeclass, timeclass/len(new_df), len(filtered_non_dw)))
 
-filtered_df_name='output_ML/T{}/DW_T{}.pickle'.format(T,T)
-filtered_dw.to_pickle(filtered_df_name)
+filtered_df_name='output_ML/T{}/DW_T{}.csv'.format(T,T)
+filtered_dw.to_csv(filtered_df_name, index=False)
 
-filtered_non_dw_name='output_ML/T{}/nonDW_T{}.pickle'.format(T,T)
-filtered_non_dw.to_pickle(filtered_non_dw_name)
+filtered_non_dw_name='output_ML/T{}/nonDW_T{}.csv'.format(T,T)
+filtered_non_dw.to_csv(filtered_non_dw_name, index=False)
