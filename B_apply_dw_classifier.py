@@ -100,12 +100,30 @@ full_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M)
 
 if len(new_df)<len(full_df):
     print('\n***Error: input_features* has lenght {} while I find only {} pairs. This is only possible if you have lost data!'.format(len(full_df),len(new_df)) )
+    sys.exit()
+
+# Convert the data to the correct types
+print('\nConverting data types')
+new_df['i'] = new_df['i'].astype(float)
+new_df['j'] = new_df['j'].astype(float)
+new_df['T'] = new_df['T'].astype(float)
+new_df['Delta_E'] = new_df['Delta_E'].astype(float)
+new_df['conf'] = new_df['conf'].astype(str)
+full_df['i'] = full_df['i'].astype(float)
+full_df['j'] = full_df['j'].astype(float)
+full_df['T'] = full_df['T'].astype(float)
+full_df['conf'] = full_df['conf'].astype(str)
+full_df['Delta_E'] = full_df['Delta_E'].astype(float)
+for mi in range(int(M)):
+    new_df['displacement_{}'.format(mi)] = new_df['displacement_{}'.format(mi)].astype(float) 
+    full_df['displacement_{}'.format(mi)] = full_df['displacement_{}'.format(mi)].astype(float) 
 
 # check which data are shared and which one are new
+print('\nCross-check and merging')
 used_df = pd.merge(full_df, new_df) 
 Nnew=len(new_df)-len(used_df)
 
-print('Overall we have {} pairs, of which {} are new from last time'.format(len(new_df),Nnew))
+print('\n\t@@@@ Overall we have {} pairs, of which {} are new from the last time you run this'.format(len(new_df),Nnew))
 
 # * Then I store this df to avoid having to redo it 
 full_df.to_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
@@ -118,10 +136,9 @@ classifier_save_path = 'MLmodel/dw-classification-M{}'.format(M)
 print('\nUsing the DW filter trained in {}'.format(classifier_save_path))
 
 print('\n* Classifier loading',flush=True)
-dwclassifier = TabularPredictor.load(classifier_save_path, verbosity=5) 
+dwclassifier = TabularPredictor.load(classifier_save_path) 
 print('\n* Classifier starts',flush=True)
 new_pairs_isdw = full_df
-#new_pairs_isdw.drop(columns=['i','j','T','conf'])
 new_pairs_isdw['is_dw'] = dwclassifier.predict(full_df.drop(columns=['i','j','T','conf']))
 timeclass=time.time() -start
 

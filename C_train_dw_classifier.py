@@ -26,7 +26,7 @@ else:
 
 ndecimals=10
 rounding_error=10**(-1*(ndecimals+1))
-
+model_path='MLmodel/dw-classification-M{}'.format(M)
 
 # *************
 # First I load the data that the classifier has already used for its training 
@@ -58,11 +58,14 @@ print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(li
 
 # I also have to include the pre-training data, which I load now to see if overall we gained data
 pretrain_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+#pretrain_df['Delta_E']=pretrain_df['Delta_E']*1500
+#pretrain_df.to_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+#sys.exit()
 
 #************
 # * Check wether or not you should retrain the model
 if(len(pretrain_df)+len(list_neb_dw)+len(list_neb_nondw))>len(used_data):
-    print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining\n\t{} non-dw\n\t{} dw'.format(len(used_data),len(pretrain_df),len(list_neb_nondw),len(list_neb_dw)))
+    print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining (both dw and non-dw)\n\t{} non-dw from NEB\n\t{} dw from NEB'.format(len(used_data),len(pretrain_df),len(list_neb_nondw),len(list_neb_dw)))
 else:
     print('All the data available have been already used to train the model')
     sys.exit()
@@ -78,16 +81,10 @@ all_pairs_df['T'] = all_pairs_df['T'].astype(float)
 all_pairs_df.i = all_pairs_df.i.round(ndecimals)
 all_pairs_df.j = all_pairs_df.j.round(ndecimals)
 
+
 # also it is possible that I have already used them, so I need to check this df
-training_df = pd.read_pickle('MLmodel/data-used-by-dwclassifier-M{}.pickle'.format(M))
-
-# *** this block is fake (remvoe later)
-# you have to use the readl training df
-training_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+training_df = used_data.copy()
 training_df = training_df[training_df['i']!='NotAvail']
-training_df['conf'] = 'Cnf-' + training_df['conf'].astype(str)
-
-
 training_df['i'] = training_df['i'].astype(float)
 training_df['j'] = training_df['j'].astype(float)
 training_df['T'] = training_df['T'].astype(float)
@@ -158,14 +155,27 @@ print('Constructed the database of {} dw'.format(len(dw_df)))
 
 
 # *******
-# add the pretrained data
+# add the pretrained data (if any)
 dw_df = pd.concat([dw_df,pretrain_df[pretrain_df['is_dw']>0]])
+dw_df=dw_df.drop_duplicates()
 non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['is_dw']<1]])
+non_dw_df=non_dw_df.drop_duplicates()
 
 
 # This is the new training df that will be stored at the end 
 new_training_df = pd.concat([dw_df,non_dw_df])
+if len(new_training_df)<=len(used_data):
+    print('\n(!) After removing the duplicates it appears that the number of data has not increased since the last time')
+    if os.path.isfile('{}/predictor.pkl'.format(model_path)):
+        print('and since the model is already trained, I stop')
+        sys.exit()
+    else:
+        print('but the model is not in {}, so I train anyway'.format(model_path),flush=True)
 
+# convert to float
+new_training_df['Delta_E'] = new_training_df['Delta_E'].astype(float)
+for mi in range(int(M)):
+    new_training_df['displacement_{}'.format(mi)] = new_training_df['displacement_{}'.format(mi)].astype(float)
 
 # Create a balanced subset with same number of dw and non-dw
 N = min(len(dw_df),len(non_dw_df))
@@ -178,14 +188,12 @@ non_dw_df=non_dw_df.sample(frac=1, random_state=20, ignore_index=True)
 # and slice
 training_set = pd.concat([dw_df.iloc[:Ntrain],non_dw_df.iloc[:Ntrain]])
 validation_set = pd.concat([dw_df.iloc[Ntrain:N],non_dw_df.iloc[Ntrain:N]])
+# and reshuffle
+training_set = training_set.sample(frac=1, random_state=20, ignore_index=True)
+validation_set = validation_set.sample(frac=1, random_state=20, ignore_index=True)
 
 
-
-print('From the overall %d data we prepare:\n\t- training set of %d  (half dw and half non-dw) \n\t- validation set of %d  (half dw and half non-dw)'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
-
-
-print(training_set)
-print(validation_set)
+print('\nFrom the overall %d data we prepare:\n\t- training set of %d  (half dw and half non-dw) \n\t- validation set of %d  (half dw and half non-dw)\n\n'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
 
 
 
@@ -202,10 +210,12 @@ training_hours=0.02
 time_limit = training_hours*60*60
 
 # remove the info not needed
-training_set.drop(columns=['i','j','conf'])
+training_set = training_set.drop(columns=['i','j','conf'])
+# * Convert to float to have optimal performances!
+training_set = TabularDataset(training_set).astype(float)
 
 # train
-predictor = TabularPredictor(label='is_dw', path='MLmodel/dw-classification-M{}'.format(M), eval_metric='accuracy').fit(training_set, time_limit=time_limit,  presets=presets)
+predictor = TabularPredictor(label='is_dw', path=model_path, eval_metric='accuracy').fit(training_set, time_limit=time_limit,  presets=presets)
 
 
 # store

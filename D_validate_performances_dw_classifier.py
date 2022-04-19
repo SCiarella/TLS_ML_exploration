@@ -24,9 +24,51 @@ else:
     print('Error because I have not received IN')
     sys.exit()
 
-ndecimals=10
-rounding_error=10**(-1*(ndecimals+1))
+save_path='MLmodel/dw-classification-M{}'.format(M)
+validation_set = pd.read_pickle('MLmodel/dw-classifier-validation-set-M{}.pickle'.format(M))
+validation_set = pd.read_pickle('MLmodel/dw-classifier-training-set-M{}.pickle'.format(M))
 
+label= 'is_dw'
+#validation_set = validation_set.drop(columns=['i','j','conf'])
+# * Convert to float to have optimal performances!
+validation_set = TabularDataset(validation_set).astype(float)
+y_true_val = validation_set[label]  # values to predict
+y_true_val = y_true_val.sort_values(ascending=False)
+validation_set= validation_set.sort_values(label,ascending=False)
+validation_set_nolab = validation_set.drop(columns=[label])  # delete label column to prove we're not cheating
+print(validation_set_nolab)
+
+# Load the model
+predictor = TabularPredictor.load(save_path, verbosity=3) 
+#predictor.persist_models()
+# predict
+y_pred_by_AI = predictor.predict(validation_set)
+#y_pred_by_AI = predictor.predict(validation_set_nolab)
+
+print('aaaaaaaa\n\n\n\n\n')
+
+perf = predictor.evaluate_predictions(y_true=y_test, y_pred=y_pred, auxiliary_metrics=True)
+
+
+correct_count=0
+wrong_count=0
+missed_dw=0
+count=0
+dw_count=0
+for pred,real in zip(y_pred_by_AI,y_true_val):
+    if pred==real:
+        correct_count+=1
+    else:
+        wrong_count+=1
+        if real==1:
+            missed_dw+=1
+    if real==1:
+        dw_count+=1
+    count+=1
+accuracy = correct_count/len(y_pred_by_AI)
+print('Overall the classifier {} has the following performances:\n\t{} accuracy (training set)\n\t{} accuracy (test set)'.format(save_path,accuracy_train,accuracy))
+
+sys.exit()
 
 # *************
 # First I load the data that the classifier has already used for its training 
@@ -58,11 +100,14 @@ print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(li
 
 # I also have to include the pre-training data, which I load now to see if overall we gained data
 pretrain_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+#pretrain_df['Delta_E']=pretrain_df['Delta_E']*1500
+#pretrain_df.to_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+#sys.exit()
 
 #************
 # * Check wether or not you should retrain the model
 if(len(pretrain_df)+len(list_neb_dw)+len(list_neb_nondw))>len(used_data):
-    print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining\n\t{} non-dw\n\t{} dw'.format(len(used_data),len(pretrain_df),len(list_neb_nondw),len(list_neb_dw)))
+    print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining (both dw and non-dw)\n\t{} non-dw from NEB\n\t{} dw from NEB'.format(len(used_data),len(pretrain_df),len(list_neb_nondw),len(list_neb_dw)))
 else:
     print('All the data available have been already used to train the model')
     sys.exit()
@@ -78,16 +123,10 @@ all_pairs_df['T'] = all_pairs_df['T'].astype(float)
 all_pairs_df.i = all_pairs_df.i.round(ndecimals)
 all_pairs_df.j = all_pairs_df.j.round(ndecimals)
 
+
 # also it is possible that I have already used them, so I need to check this df
-training_df = pd.read_pickle('MLmodel/data-used-by-dwclassifier-M{}.pickle'.format(M))
-
-# *** this block is fake (remvoe later)
-# you have to use the readl training df
-training_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+training_df = used_data.copy()
 training_df = training_df[training_df['i']!='NotAvail']
-training_df['conf'] = 'Cnf-' + training_df['conf'].astype(str)
-
-
 training_df['i'] = training_df['i'].astype(float)
 training_df['j'] = training_df['j'].astype(float)
 training_df['T'] = training_df['T'].astype(float)
@@ -158,9 +197,11 @@ print('Constructed the database of {} dw'.format(len(dw_df)))
 
 
 # *******
-# add the pretrained data
+# add the pretrained data (if any)
 dw_df = pd.concat([dw_df,pretrain_df[pretrain_df['is_dw']>0]])
+dw_df=dw_df.drop_duplicates()
 non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['is_dw']<1]])
+non_dw_df=non_dw_df.drop_duplicates()
 
 
 # This is the new training df that will be stored at the end 
@@ -173,15 +214,17 @@ N = min(len(dw_df),len(non_dw_df))
 Nval = int(0.1*N)
 Ntrain = N -Nval
 # shuffle
-dw_df=dw_df.sample(frac=1, random_state=20)
-non_dw_df=non_dw_df.sample(frac=1, random_state=20)
+dw_df=dw_df.sample(frac=1, random_state=20, ignore_index=True)
+non_dw_df=non_dw_df.sample(frac=1, random_state=20, ignore_index=True)
 # and slice
 training_set = pd.concat([dw_df.iloc[:Ntrain],non_dw_df.iloc[:Ntrain]])
 validation_set = pd.concat([dw_df.iloc[Ntrain:N],non_dw_df.iloc[Ntrain:N]])
+# and reshuffle
+training_set = training_set.sample(frac=1, random_state=20, ignore_index=True)
+validation_set = validation_set.sample(frac=1, random_state=20, ignore_index=True)
 
 
-
-print('From the overall %d data we prepare:\n\t- training set of %d  (half dw and half non-dw) \n\t- validation set of %d  (half dw and half non-dw)'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
+print('From the overall %d data we prepare:\n\t- training set of %d  (half dw and half non-dw) \n\t- validation set of %d  (half dw and half non-dw)\n\n'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
 
 
 print(training_set)
