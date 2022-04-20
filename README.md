@@ -31,6 +31,7 @@ The package is already ready to run and it just needs your new data.
 
 
 ## Overview
+The repository consist in a series of python codes named [A-G]\_\.py 
 
 
 
