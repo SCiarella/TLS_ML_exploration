@@ -34,6 +34,7 @@ model_path='MLmodel/dw-classification-M{}'.format(M)
 # *************
 # First I load the data that the classifier has already used for its training 
 used_data = pd.read_pickle('MLmodel/data-used-by-dwclassifier-M{}.pickle'.format(M))
+used_data = pd.DataFrame()
 
 # Then I check the NEB calculations to see the what new data are available 
 list_neb_nondw=[]
@@ -172,6 +173,13 @@ dw_df['is_dw']=1
 print('Constructed the database of {} dw'.format(len(dw_df)))
 
 
+
+#dw_df=dw_df[(dw_df['conf']=='Cnf-130050000')&(dw_df['i']>0.205818)&(dw_df['i']<0.205819)].sort_values(by='i')
+#with pd.option_context('display.float_format', '{:0.10f}'.format):
+#    print(dw_df)
+#sys.exit()
+
+
 # *******
 # add the pretrained data (if any)
 dw_df = pd.concat([dw_df,pretrain_df[pretrain_df['is_dw']>0]])
@@ -197,6 +205,7 @@ for mi in range(int(M)):
 
 # Create a balanced subset with same number of dw and non-dw
 N = min(len(dw_df),len(non_dw_df))
+print('Having {} dw and {} non-dw, we select only {} of each for the classifier'.format(len(dw_df),len(non_dw_df),N))
 # and pick 10percent apart for validation
 Nval = int(0.1*N)
 Ntrain = N -Nval
@@ -227,14 +236,10 @@ presets='high_quality_fast_inference_only_refit'
 training_hours=0.02
 time_limit = training_hours*60*60
 
-# remove the info not needed
-training_set = training_set.drop(columns=['i','j','conf'])
-# * Convert to float to have optimal performances!
-training_set = TabularDataset(training_set).astype(float)
-
 # train
 # * I am excluding KNN because it is problematic
-predictor = TabularPredictor(label='is_dw', path=model_path, eval_metric='accuracy').fit(training_set, time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
+# * Convert to float to have optimal performances!
+predictor = TabularPredictor(label='is_dw', path=model_path, eval_metric='accuracy').fit(TabularDataset(training_set.drop(columns=['i','j','conf'])).astype(float), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
 
 
 # store
