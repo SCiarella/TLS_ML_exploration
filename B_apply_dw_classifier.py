@@ -16,7 +16,6 @@ import multiprocessing as mp
 # This code runs the dw vs non-dw classifier over all the pairs 
 
 
-
 try:
     with open("M_val.txt") as f:
         M=int(f.readlines()[0].strip('\n'))
@@ -138,15 +137,9 @@ print('\n* Classifier loading',flush=True)
 dwclassifier = TabularPredictor.load(classifier_save_path) 
 
 print('\n* Classifier starts',flush=True)
-#new_pairs_isdw = new_df
-#in_for_pred =TabularDataset(new_df.drop(columns=['i','j','conf'])).astype(float)
-#the_predictions = dwclassifier.predict(in_for_pred)
-#new_pairs_isdw['is_dw'] = the_predictions
 new_df['is_dw'] = dwclassifier.predict(new_df)
 timeclass=time.time() -start
 
-#filtered_dw = new_pairs_isdw[ new_pairs_isdw['is_dw']>0 ].drop(columns='is_dw') 
-#filtered_non_dw = new_pairs_isdw[ new_pairs_isdw['is_dw']<1 ].drop(columns='is_dw') 
 filtered_dw = new_df[ new_df['is_dw']>0 ] 
 filtered_non_dw = new_df[ new_df['is_dw']<1 ] 
 print('From the {} pairs, only {} are classified as dw (in {} sec = {} sec per pair), so {} are non-dw'.format(len(new_df), len(filtered_dw), timeclass, timeclass/len(new_df), len(filtered_non_dw)))

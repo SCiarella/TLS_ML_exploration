@@ -65,7 +65,7 @@ if(len(pretrain_df)+len(list_neb_qs))>len(used_data):
     print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining \n\t{} from NEB'.format(len(used_data),len(pretrain_df),len(list_neb_qs)))
 else:
     print('All the data available have been already used to train the model')
-#    sys.exit() #uncomment this1414144141414
+    sys.exit()
 
 # If we are not exited, it means that we have more qs data to use to retrain the model
 
@@ -121,8 +121,7 @@ if len(new_training_df)<=len(used_data):
     print('\n(!) After removing the duplicates it appears that the number of data has not increased since the last time')
     if os.path.isfile('{}/predictor.pkl'.format(model_path)):
         print('and since the model is already trained, I stop')
-#        sys.exit()
-# UNCOMMENT ABOVE
+        sys.exit()
     else:
         print('but the model is not in {}, so I train anyway'.format(model_path),flush=True)
 

@@ -83,16 +83,6 @@ all_pairs_df.i = all_pairs_df.i.round(ndecimals)
 all_pairs_df.j = all_pairs_df.j.round(ndecimals)
 
 
-## also it is possible that I have already used them, so I need to check this df
-#training_df = used_data.copy()
-#training_df = training_df[training_df['i']!='NotAvail']
-#training_df['i'] = training_df['i'].astype(float)
-#training_df['j'] = training_df['j'].astype(float)
-#training_df['T'] = training_df['T'].astype(float)
-#training_df.i = training_df.i.round(ndecimals)
-#training_df.j = training_df.j.round(ndecimals)
-
-
 # split this task between parallel workers
 elements_per_worker=20
 chunks=[list_neb_nondw[i:i + elements_per_worker] for i in range(0, len(list_neb_nondw), elements_per_worker)]
@@ -119,33 +109,6 @@ def process_chunk(chunk):
             print('WARNING: we do not have {}'.format(element))
     return worker_df
 
-#def process_chunk(chunk):
-#    worker_df=pd.DataFrame()
-#    # I search for the given configuration
-#    for element in chunk:
-#        T,conf,i,j = element
-#        # was this element used for training?
-#        a = training_df[(training_df['T']==T)&(training_df['conf']==conf)&(training_df['i'].between(i-rounding_error,i+rounding_error))&(training_df['j'].between(j-rounding_error,j+rounding_error))]
-#        if len(a)>1:
-#            print('Error! multiple correspondences in train')
-#            sys.exit()
-#        elif len(a)==1:
-#            worker_df = pd.concat([worker_df,a])
-#        else:
-#            # do we have it ?
-#            a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
-#            if len(a)>1:
-#                print('Error! multiple correspondences for {}'.format(element))
-#                with pd.option_context('display.float_format', '{:0.20f}'.format):
-#                    print(a)
-#                    print(a[['i','j']])
-#                sys.exit()
-#            elif len(a)==1:
-#                worker_df = pd.concat([worker_df,a])
-#            else:
-#                print('we do not have {}'.format(element))
-#                sys.exit()
-#    return worker_df
         
 # Initialize the pool
 pool = mp.Pool(mp.cpu_count())
@@ -172,12 +135,6 @@ for df_chunk in results:
 dw_df['is_dw']=1
 print('Constructed the database of {} dw'.format(len(dw_df)))
 
-
-
-#dw_df=dw_df[(dw_df['conf']=='Cnf-130050000')&(dw_df['i']>0.205818)&(dw_df['i']<0.205819)].sort_values(by='i')
-#with pd.option_context('display.float_format', '{:0.10f}'.format):
-#    print(dw_df)
-#sys.exit()
 
 
 # *******

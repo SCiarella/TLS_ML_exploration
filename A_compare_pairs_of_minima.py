@@ -220,8 +220,4 @@ for Tdir in list_T:
         
         print('\n*Done\n\n')
         full_df.to_pickle(full_df_name)
-
-        
-       # print('For reference this is Delta_E:')
-       # print(full_df.sort_values('Delta_E')['Delta_E'])
     

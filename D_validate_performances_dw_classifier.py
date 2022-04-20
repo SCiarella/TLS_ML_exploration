@@ -15,7 +15,7 @@ import time
 import multiprocessing as mp
 
 
-# This code takes all the available data (results from the NEB) and if they are more than the data that we already used to train the model, we retrain it 
+# This code takes validates the dw classifier
 
 
 # We need the desired M for the target df
@@ -40,17 +40,8 @@ training_set_nolab = TabularDataset(training_set_nolab).astype(float)
 y_true_val = training_set[label]  # values to predict
 
 
-#a = validation_set
-#a = a[(a['conf']=='Cnf-130050000')&(a['i']==0.2058183103)&(a['j']==0.2058202455)]
-#with pd.option_context('display.float_format', '{:0.10f}'.format):
-#    print(a)
-#sys.exit()
-#Error: we do not have (0.062, 'Cnf-130050000', 0.2058183103, 0.2058202455, '0.00337563907974')
-
-
-
 # Load the model
-predictor = TabularPredictor.load(save_path, verbosity=3) 
+predictor = TabularPredictor.load(save_path) 
 predictor.persist_models()
 # predict
 y_pred_by_AI = predictor.predict(training_set_nolab)
@@ -68,7 +59,6 @@ for i_true, i_pred in zip(y_true_val,y_pred_by_AI):
         dw+=1
     if i_true!=i_pred:
         error +=1
-        #print('I am predicting wrong conf:{}  i:{}  j:{}'.format(training_set.iloc[index]['conf'],training_set.iloc[index]['i'],training_set.iloc[index]['j']))
     else:
         correct +=1
     index+=1
@@ -117,7 +107,6 @@ for i_true, i_pred in zip(y_true_val,y_pred_by_AI):
         dw+=1
     if i_true!=i_pred:
         error +=1
-        #print('I am predicting wrong conf:{}  i:{}  j:{}'.format(training_set.iloc[index]['conf'],training_set.iloc[index]['i'],training_set.iloc[index]['j']))
     else:
         correct +=1
     index+=1

@@ -29,6 +29,7 @@ except Exception as error:
 M = int(M)
 natoms = 1500
 save_path='MLmodel/qs-regression-M{}'.format(M)
+low_thresh_qs=0.0003
 
 # Load the model
 predictor = TabularPredictor.load(save_path) 
@@ -54,16 +55,32 @@ for Tdir in list_T:
     # store the prediction
     dw_df['quantum_splitting']=y_pred_by_AI
     dw_df = dw_df.sort_values(by='quantum_splitting')
-    dw_df.to_csv('{}/predictedQs_T{}.csv'.format(Tdir,T))
+    dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}.csv'.format(Tdir,T),index=False)
+
+    # load the NEB data for the plot
+    list_neb_qs=[]
+    with open('NEB_calculations/T{}/Qs_calculations.txt'.format(T)) as qs_file:
+        lines = qs_file.readlines()
+        for line in lines:
+            qs = line.split()[2]
+            list_neb_qs.append(float(qs))
+    neb_qs=pd.DataFrame({'quantum_splitting':list_neb_qs})
 
     # plot the distribution
-    plt.figure();
-    ecdf = ECDF(dw_df["quantum_splitting"])
+    fig,axs = plt.subplots();
+    ecdf = ECDF(dw_df[dw_df['quantum_splitting']>low_thresh_qs]["quantum_splitting"])
     Norm = len(dw_df) / (nglass*natoms)
-    plt.loglog(ecdf.x, Norm * ecdf.y/ecdf.x, "o");
+    plt.loglog(ecdf.x, Norm * ecdf.y/ecdf.x, "o", label='AI prediction');
     n0 = Norm*np.quantile(ecdf.y/ecdf.x, 0.001)
     plt.axhline(n0, ls="--")
+    ecdf = ECDF(neb_qs[neb_qs['quantum_splitting']>low_thresh_qs]["quantum_splitting"])
+    Norm = len(neb_qs) / (nglass*natoms)
+    plt.loglog(ecdf.x, Norm * ecdf.y/ecdf.x, "o", label='NEB calculation');
+    n0 = Norm*np.quantile(ecdf.y/ecdf.x, 0.001)
+    plt.axhline(n0, color='r')
     plt.xlabel(r"$E$");
     plt.ylabel(r"$\dfrac{n(E)}{E}$");
+    axs.legend()
     plt.savefig("{}/splitting_cdf_T{}.png".format(Tdir,T), dpi=150, bbox_inches="tight");
+    plt.close()
 
