@@ -33,8 +33,11 @@ model_path='MLmodel/dw-classification-M{}'.format(M)
 
 # *************
 # First I load the data that the classifier has already used for its training 
-used_data = pd.read_pickle('MLmodel/data-used-by-dwclassifier-M{}.pickle'.format(M))
-used_data = pd.DataFrame()
+try:
+    used_data = pd.read_pickle('MLmodel/data-used-by-dwclassifier-M{}.pickle'.format(M))
+except:
+    print('First time training the classifier')
+    used_data = pd.DataFrame()
 
 # Then I check the NEB calculations to see the what new data are available 
 list_neb_nondw=[]
