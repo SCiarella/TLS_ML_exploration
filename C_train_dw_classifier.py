@@ -123,7 +123,7 @@ non_dw_df=pd.DataFrame()
 for df_chunk in results:
     non_dw_df = pd.concat([non_dw_df,df_chunk])
 non_dw_df['is_dw']=0
-print('Constructed the database of {} non-dw'.format(len(non_dw_df)))
+print('Constructed the database of {} non-dw from the new pairs'.format(len(non_dw_df)))
 
 # *** now get the dw using the same function
 chunks=[list_neb_dw[i:i + elements_per_worker] for i in range(0, len(list_neb_dw), elements_per_worker)]
@@ -136,7 +136,7 @@ dw_df=pd.DataFrame()
 for df_chunk in results:
     dw_df = pd.concat([dw_df,df_chunk])
 dw_df['is_dw']=1
-print('Constructed the database of {} dw'.format(len(dw_df)))
+print('Constructed the database of {} dw from the new pairs'.format(len(dw_df)))
 
 
 

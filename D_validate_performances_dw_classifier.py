@@ -75,7 +75,7 @@ try:
         sys.stdout = f # Change the standard output to the file we created.
         print('\t***Performances over the training set:')
         print(perf)
-        print('Of the {} predictions {} are correct and {} are wrong ({} were dw)'.format(len(training_set),correct, error,dw))
+        print('Of the {} predictions {} are correct and {} are wrong ({} of the data are dw)'.format(len(training_set),correct, error,dw))
         print('of which I mislabeled {} dw and {} non-dw'.format(error_dw, error_nondw))
         sys.stdout = sys.__stdout__
 except Exception as error:
@@ -123,7 +123,7 @@ try:
         sys.stdout = f # Change the standard output to the file we created.
         print('\n\n\t***Performances over the test set:')
         print(perf)
-        print('Of the {} predictions {} are correct and {} are wrong ({} were dw)'.format(len(validation_set),correct, error,dw))
+        print('Of the {} predictions {} are correct and {} are wrong ({} of the data are dw)'.format(len(validation_set),correct, error,dw))
         print('of which I mislabeled {} dw and {} non-dw'.format(error_dw, error_nondw))
         sys.stdout = sys.__stdout__
 except Exception as error:

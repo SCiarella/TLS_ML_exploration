@@ -31,6 +31,11 @@ natoms = 1500
 save_path='MLmodel/qs-regression-M{}'.format(M)
 low_thresh_qs=0.0003
 
+# check if the model is there
+if not os.path.isdir(save_path):
+    print('Error: I am looking for the ML model in {}, but I can not find it. If this is the first time, you have to run F_* before this'.format(save_path))
+    sys.exit()
+
 # Load the model
 predictor = TabularPredictor.load(save_path) 
 predictor.persist_models()
