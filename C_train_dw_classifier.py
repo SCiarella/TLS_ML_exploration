@@ -18,15 +18,7 @@ import multiprocessing as mp
 # This code takes all the available data (results from the NEB) and if they are more than the data that we already used to train the model, we retrain it 
 
 
-# We need the desired M for the target df
-try:
-    with open("M_val.txt") as f:
-        M=int(f.readlines()[0].strip('\n'))
-        print('M={}'.format(M))
-except Exception as error:
-    print('Error: {}'.format(Exception))
-    sys.exit()
-
+M = myparams.M
 ndecimals=10
 rounding_error=10**(-1*(ndecimals+1))
 model_path='MLmodel/dw-classification-M{}'.format(M)
@@ -197,7 +189,7 @@ presets='high_quality_fast_inference_only_refit'
 #presets='good_quality_faster_inference_only_refit'
 
 # you can also change the training time
-training_hours=0.02
+training_hours=myparams.qs_pred_train_hours
 time_limit = training_hours*60*60
 
 # train

@@ -12,17 +12,10 @@ import pickle
 import autogluon as ag
 from autogluon.tabular import TabularDataset, TabularPredictor
 import multiprocessing as mp
+import myparams
 
 # This code runs the dw vs non-dw classifier over all the pairs 
 
-
-try:
-    with open("M_val.txt") as f:
-        M=int(f.readlines()[0].strip('\n'))
-        print('M={}'.format(M))
-except Exception as error:
-    print('Error: {}'.format(Exception))
-    sys.exit()
 
 # The absolute position is not interesting, so I only report the distance from particle 0
 # notice that you have to evalaute the distance using PBC !
@@ -33,8 +26,8 @@ def PBC_dist(x):
     while x < -Lhalf:
         x+=2*Lhalf
     return x
-M = int(M)
 
+M = myparams.M
 
 # *************
 # (1) Load the T and conf to get a list of all the data 

@@ -13,6 +13,7 @@ import glob
 from shutil import copyfile
 import numpy as np
 import pandas as pd
+import myparams
 
 
 # The goal of this code is to prepare a file for each T*/Conf*ij pair 
@@ -42,16 +43,7 @@ def displacement(ix,iy,iz,jx,jy,jz,Lhalf):
     return math.sqrt(dist(ix,jx,Lhalf)**2 +dist(iy,jy,Lhalf)**2 +dist(iz,jz,Lhalf)**2)
 
 
-# We need the desired M for the target df
-try:
-    with open("M_val.txt") as f:
-        M=int(f.readlines()[0].strip('\n'))
-        print('M={}'.format(M))
-except Exception as error:
-    print('Error: {}'.format(Exception))
-    sys.exit()
-
-
+M = myparams.M
 
 pairs_dir='Configurations/pairs'
 if not os.path.exists(pairs_dir):

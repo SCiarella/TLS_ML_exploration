@@ -14,19 +14,12 @@ from autogluon.tabular import TabularDataset, TabularPredictor
 from statsmodels.distributions.empirical_distribution import ECDF
 import matplotlib.pyplot as plt
 import matplotlib
+import myparams
 
 # This code runs the qs prediction for all the pairs that have been predicted to be dw 
 
 
-try:
-    with open("M_val.txt") as f:
-        M=int(f.readlines()[0].strip('\n'))
-        print('M={}'.format(M))
-except Exception as error:
-    print('Error: {}'.format(Exception))
-    sys.exit()
-
-M = int(M)
+M = myparams.M
 natoms = 1500
 save_path='MLmodel/qs-regression-M{}'.format(M)
 low_thresh_qs=0.0003

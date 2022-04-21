@@ -10,25 +10,17 @@ import pickle
 import pandas as pd
 import autogluon as ag
 from autogluon.tabular import TabularDataset, TabularPredictor
-from sklearn.model_selection import train_test_split
 import time
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 import matplotlib
+import myparams
 
 
 # This code validates the performances of the qs predictor
 
 
-# We need the desired M for the target df
-try:
-    with open("M_val.txt") as f:
-        M=int(f.readlines()[0].strip('\n'))
-        print('M={}'.format(M))
-except Exception as error:
-    print('Error: {}'.format(Exception))
-    sys.exit()
-
+M = myparams.M
 ndecimals=10
 rounding_error=10**(-1*(ndecimals+1))
 thresh_tls= 0.00151

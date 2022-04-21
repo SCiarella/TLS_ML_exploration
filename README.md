@@ -16,8 +16,8 @@ This program is able to construct all the pairs of inherent structures (IS or en
 
 To install all the prerequired packages from a fresh conda environment run the following
 ```
-conda create -n tls_exploration
-conda activate tls_environment
+conda create -n tls_exploration -y python=3.9
+conda activate tls_exploration
 conda install -y -c conda-forge statsmodels
 git clone https://github.com/SCiarella/autogluon
 cd autogluon && ./full_install.sh
@@ -82,7 +82,7 @@ python A_*
 ```
 to prepare all the pairs, followed by
 ```
-python C_* 
+python B_* && python C_* 
 ```
 to train the dw classifier for the first time.
 

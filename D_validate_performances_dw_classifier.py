@@ -10,23 +10,15 @@ import pickle
 import pandas as pd
 import autogluon as ag
 from autogluon.tabular import TabularDataset, TabularPredictor
-from sklearn.model_selection import train_test_split
 import time
 import multiprocessing as mp
+import myparams
 
 
 # This code takes validates the dw classifier
 
 
-# We need the desired M for the target df
-try:
-    with open("M_val.txt") as f:
-        M=int(f.readlines()[0].strip('\n'))
-        print('M={}'.format(M))
-except Exception as error:
-    print('Error: {}'.format(Exception))
-    sys.exit()
-
+M = myparams.M
 save_path='MLmodel/dw-classification-M{}'.format(M)
 validation_set = pd.read_pickle('MLmodel/dw-classifier-validation-set-M{}.pickle'.format(M))
 training_set = pd.read_pickle('MLmodel/dw-classifier-training-set-M{}.pickle'.format(M))
