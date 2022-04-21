@@ -97,8 +97,16 @@ print('\n*Done reading the glasses')
 try:
     old_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
 except:
-    print('First time running this code. Have you already trained the classifier using C_* ?')
-    old_df=pd.DataFrame()
+    print('First time running this code. Have you already trained the classifier using C_* ? If yes you can re-execute this')
+    new_df['i'] = new_df['i'].astype(float)
+    new_df['j'] = new_df['j'].astype(float)
+    new_df['T'] = new_df['T'].astype(float)
+    new_df['Delta_E'] = new_df['Delta_E'].astype(float)
+    new_df['conf'] = new_df['conf'].astype(str)
+    for mi in range(int(M)):
+        new_df['displacement_{}'.format(mi)] = new_df['displacement_{}'.format(mi)].astype(float) 
+    new_df.to_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+    sys.exit()
 
 if len(new_df)<len(old_df):
     print('\n***Error: input_features* has lenght {} while I find only {} pairs. This is only possible if you have lost data!'.format(len(old_df),len(new_df)) )
