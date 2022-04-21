@@ -164,6 +164,9 @@ for Tdir in list_T:
     missed_dw=0
     for df_chunk in results:
         qs_df= pd.concat([qs_df,df_chunk])
+    if len(qs_df)<1:
+        print('Error: for none of our available data we have NEB calculation, so it is not possible to validate our model prediction.')
+        sys.exit()
     print('Constructed the database of {} pairs.\nPredicting'.format(len(qs_df)))
 
     y_pred_by_AI = predictor.predict(qs_df.drop(columns='quantum_splitting'))
