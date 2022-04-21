@@ -12,7 +12,10 @@ In particular two-level systems (TLS) are extremely interesting, but hard to fin
 This program is able to construct all the pairs of inherent structures (IS or energy minima) combining the provided IS and predict in $10^{-5}$ their quantum splitting, thus suggesting which one are likely to be TLS.
 
 this:
-![10^{-5}](https://latex.codecogs.com/svg.latex?x%3D%5Cfrac%7B-b%5Cpm%5Csqrt%7Bb%5E2-4ac%7D%7D%7B2a%7D)
+<img src="https://latex.codecogs.com/svg.image?10^{-5}" />
+
+
+
 
 # Installation
 
@@ -27,7 +30,7 @@ cd autogluon && ./full_install.sh
 
 Then you can proceed with the download of this package
 ```
-cd
+cd ~
 git clone https://github.com/SCiarella/TLS_ML_exploration.git
 ```
 
