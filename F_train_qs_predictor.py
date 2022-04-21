@@ -95,9 +95,9 @@ def process_chunk(chunk):
         elif len(a)==1:
             a['quantum_splitting']=qs
             worker_df = pd.concat([worker_df,a])
-        else:
-            print('Error: we do not have {}'.format(element))
-            sys.exit()
+#        else:
+#            print('Error: we do not have {}'.format(element))
+#            sys.exit()
     return worker_df
         
 # Initialize the pool
