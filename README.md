@@ -2,7 +2,7 @@
 
 ### A machine learning package by Simone Ciarella
 [**Installation**](#Installation)
-| [**Quick run**](#Quick run)
+| [**Quick run**](#Quickrun)
 | [**Paper**](https://arxiv.org/pdf/111.pdf)
 
 
@@ -33,15 +33,15 @@ The package is already ready to run and it just needs your new data.
 
 ## Overview
 
-The repository consist in a series of python codes named [A-G]\_\.py 
+The repository consist in a series of python codes named `[A-G]\_\.py` 
 In brief, each of them has the following task:
-* **A** constructs all the pairs of minima
-* **B** classifies double wells (dw)
-* **C** re-trains the dw classifier
-* **D** validates the performances of the dw classifier
-* **E** predicts the qs of all the pairs
-* **F** re-trains the qs predictor
-* **G** validates the performances of the qs predictor
+* **A**\*.py:  constructs all the pairs of minima
+* **B**\*.py:  classifies double wells (dw)
+* **C**\*.py:  re-trains the dw classifier
+* **D**\*.py:  validates the performances of the dw classifier
+* **E**\*.py:  predicts the qs of all the pairs
+* **F**\*.py:  re-trains the qs predictor
+* **G**\*.py:  validates the performances of the qs predictor
 
 Those codes run behind the scene using the content of the MLmodel directory.
 The other directories present in the project are the following:
@@ -109,7 +109,7 @@ python A_* && python B_* && python E_*
 in order to obtain predictions also for this new data.
 
 ---
-**_Optionally:_** if you have new NEB results you can re-train the ML models.
+**_Optionally:_** if you have new NEB results you can *re-train the ML models*.
 In particular you can retrain the dw classifier with
 ```
 python A_* && python C_* 
