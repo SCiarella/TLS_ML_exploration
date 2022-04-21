@@ -2,7 +2,7 @@
 
 ### A machine learning package by Simone Ciarella
 [**Installation**](#Installation)
-| [**Quick run**](#Quickrun)
+| [**Quick run**](#Quick-run)
 | [**Paper**](https://arxiv.org/pdf/111.pdf)
 
 
@@ -110,7 +110,7 @@ python A_* && python B_* && python E_*
 in order to obtain predictions also for this new data.
 
 ---
-**_Optionally:_** if you have new NEB results you can *re-train the ML models*.
+**_Optionally:_** if you have new NEB results you can **re-train the ML models**.
 In particular you can retrain the dw classifier with
 ```
 python A_* && python C_* 
