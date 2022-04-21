@@ -33,7 +33,8 @@ The package is already ready to run and it just needs your new data.
 
 ## Overview
 
-The repository consist in a series of python codes named `[A-G]\_\.py` 
+The repository consist in a series of python codes named `[A-G]\_\.py` . 
+
 In brief, each of them has the following task:
 * **A**\*.py:  constructs all the pairs of minima
 * **B**\*.py:  classifies double wells (dw)
@@ -131,13 +132,13 @@ python G_*
 ```
 to test the qs predictor.
 
-The content of output\_ML/dw\_classifier\_performances\.txt will provide an estimate of the accuracy of the classifier evaluated over its training set followed up by the same measures over a test set that the model has not used for its training. You can expect that this second measure will be the overall performance of the classifier.
+The content of `output\_ML/dw\_classifier\_performances\.txt` will provide an estimate of the accuracy of the classifier evaluated over its training set followed up by the same measures over a test set that the model has not used for its training. You can expect that this second measure will be the overall performance of the classifier.
 
-The qs predictor can be evaluated by looking at the plots in output\_ML/qs-true\_vs\_AI\_t\*set.png that will show the quality of the prediction over the training set and the test set (not used for training).
-Additionally it is possible to look at output\_ML/T\*/splitting\_cdf\_T\*.png which reports the cumulativie distribution of the energy splitting, comparing the NEBs to the ML predictions, and  output\_ML/T\*/TLS-search-efficiency.png which reports the efficiency of the ML approach showing how many NEBs are required to find all the TLS available so far.
+The qs predictor can be evaluated by looking at the plots in `output\_ML/qs-true\_vs\_AI\_t\*set.png` that will show the quality of the prediction over the training set and the test set (not used for training).
+Additionally it is possible to look at `output\_ML/T\*/splitting\_cdf\_T\*.png` which reports the cumulativie distribution of the energy splitting, comparing the NEBs to the ML predictions, and `output\_ML/T\*/TLS-search-efficiency.png` which reports the efficiency of the ML approach showing how many NEBs are required to find all the TLS available so far.
 
 
 ## Output of the ML model
-The most interesting output of the ML model is the database in *output\_ML/T\*/predictedQs\_T\*.csv*
+The most interesting output of the ML model is the database in `**output\_ML/T\*/predictedQs\_T\*.csv**`
 It contains the quantum splitting prediction for all the pairs of minima, ordered from smallest to largest.
 This means that the **_next neb that you should run_** are for the pairs at the beginning of this list.
