@@ -112,6 +112,20 @@ python A_* && python B_* && python E_*
 ```
 in order to obtain predictions also for this new data.
 
+
+| :point_up: Re-Training              |
+|:---------------------------|
+| if you have new NEB results you can **re-train the ML models**.
+In particular you can retrain the dw classifier with
+```
+python A_* && python C_* 
+```
+and you can train the qs predictor with
+```
+python A_* && python E_* 
+```
+ |
+
 ---
 **_Optionally:_** if you have new NEB results you can **re-train the ML models**.
 In particular you can retrain the dw classifier with
