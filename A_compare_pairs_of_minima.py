@@ -192,7 +192,7 @@ for Tdir in list_T:
                 # Finally append the line to the database
                 worker_df = pd.concat([worker_df,pd.DataFrame(single_pair_df).T])
         
-            print('Worker [{} / {}] done'.format(str(mp.current_process()).split('-')[1].split('\'')[0],n_chunks))
+            #print('Worker [{} / {}] done'.format(str(mp.current_process()).split('-')[1].split('\'')[0],n_chunks))
             return(worker_df)
         
         # Initialize the pool

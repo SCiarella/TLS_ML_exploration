@@ -9,12 +9,7 @@
 
 The idea of this project is to use *machine learning* to **speed up** the exploration of the landscape of glassy materials.
 In particular two-level systems (TLS) are extremely interesting, but hard to find in molecular dynamics (MD) simulations.
-This program is able to construct all the pairs of inherent structures (IS or energy minima) combining the provided IS and predict in $10^{-5}$ their quantum splitting, thus suggesting which one are likely to be TLS.
-
-this:
-<img src="https://latex.codecogs.com/svg.image?10^{-5}" />
-
-
+This program is able to construct all the pairs of inherent structures (IS or energy minima) combining the provided IS and predict in <img src="https://latex.codecogs.com/svg.image?10^{-5}" /> seconds their quantum splitting, thus suggesting which one are likely to be TLS.
 
 
 # Installation
