@@ -145,7 +145,7 @@ start= time.time()
 classifier_save_path = 'MLmodel/dw-classification-M{}'.format(M)
 # check if the model is there
 if not os.path.isdir(classifier_save_path):
-    print('I am looking for the classifieri in {}, but I can not find it. If this is the first time, you have to run C_* before this')
+    print('Error: I am looking for the classifier in {}, but I can not find it. If this is the first time, you have to run C_* before this'.format(classifier_save_path))
     sys.exit()
 else:
     print('\nUsing the DW filter trained in {}'.format(classifier_save_path))

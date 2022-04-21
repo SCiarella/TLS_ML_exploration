@@ -108,8 +108,8 @@ def process_chunk(chunk):
             sys.exit()
         elif len(a)==1:
             worker_df = pd.concat([worker_df,a])
-        else:
-            print('WARNING: we do not have {}'.format(element))
+#        else:
+#            print('WARNING: we do not have {}'.format(element))
     return worker_df
 
         
