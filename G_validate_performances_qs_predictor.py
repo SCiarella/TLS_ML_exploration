@@ -127,9 +127,9 @@ def process_chunk(chunk):
             b = a.copy()
             b['quantum_splitting']=qs
             worker_df = pd.concat([worker_df,b])
-        else:
-            print('Error: we do not have {}'.format(element))
-            sys.exit()
+#        else:
+#            print('Error: we do not have {}'.format(element))
+#            sys.exit()
     return worker_df
 
 print('\n\n\n')
