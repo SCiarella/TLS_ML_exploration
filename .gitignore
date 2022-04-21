@@ -1,2 +1,7 @@
-MLmodel
+MLmodel/inp*
+MLmodel/data*
+MLmodel/dw-class*
+MLmodel/qs-reg*
 Configurations/pair*
+Configurations/minim*
+local*
