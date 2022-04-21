@@ -78,7 +78,11 @@ else:
 
 # For these new NEB informations, I look for the corresponding input pair 
 # so I need to load the input features for all of them
-all_pairs_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+try:
+    all_pairs_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+except:
+    print('Error: there are no data prepared, so you have to run B_ first.')
+    sys.exit()
 all_pairs_df['i'] = all_pairs_df['i'].astype(float)
 all_pairs_df['j'] = all_pairs_df['j'].astype(float)
 all_pairs_df['T'] = all_pairs_df['T'].astype(float)
