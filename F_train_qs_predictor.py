@@ -20,7 +20,6 @@ import myparams
 
 
 M = myparams.M
-
 ndecimals=10
 rounding_error=10**(-1*(ndecimals+1))
 model_path='MLmodel/qs-regression-M{}'.format(M)
@@ -156,7 +155,7 @@ presets='high_quality_fast_inference_only_refit'
 #presets='good_quality_faster_inference_only_refit'
 
 # you can also change the training time
-training_hours=0.5
+training_hours=myparams.qs_pred_train_hours
 time_limit = training_hours*60*60
 
 
