@@ -13,6 +13,7 @@ from autogluon.tabular import TabularDataset, TabularPredictor
 from sklearn.model_selection import train_test_split
 import time
 import multiprocessing as mp
+import myparams
 
 
 # This code takes all the available data (results from the NEB) and if they are more than the data that we already used to train the model, we retrain it 
