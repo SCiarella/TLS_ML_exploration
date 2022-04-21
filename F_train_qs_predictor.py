@@ -13,19 +13,13 @@ from autogluon.tabular import TabularDataset, TabularPredictor
 from sklearn.model_selection import train_test_split
 import time
 import multiprocessing as mp
+import myparams
 
 
 # This code takes all the available data (results from the NEB) and if they are more than the data that we already used to train the model, we retrain it 
 
 
-# We need the desired M for the target df
-try:
-    with open("M_val.txt") as f:
-        M=int(f.readlines()[0].strip('\n'))
-        print('M={}'.format(M))
-except Exception as error:
-    print('Error: {}'.format(Exception))
-    sys.exit()
+M = myparams.M
 
 ndecimals=10
 rounding_error=10**(-1*(ndecimals+1))
