@@ -33,7 +33,11 @@ model_path='MLmodel/qs-regression-M{}'.format(M)
 
 # *************
 # First I load the data that the predictor has already used for its training 
-used_data = pd.read_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M))
+try:
+    used_data = pd.read_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M))
+except:
+    print('First time training the classifier')
+    used_data = pd.DataFrame()
 
 # Then I check the NEB calculations to see the what new data are available 
 list_neb_qs=[]

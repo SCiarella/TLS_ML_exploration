@@ -94,7 +94,11 @@ for df_chunk in results:
 print('\n*Done reading the glasses')
 
 # load the df containing all the pairs that I found last time
-old_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+try:
+    old_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+except:
+    print('First time running this code')
+    old_df=pd.DataFrame()
 
 if len(new_df)<len(old_df):
     print('\n***Error: input_features* has lenght {} while I find only {} pairs. This is only possible if you have lost data!'.format(len(old_df),len(new_df)) )
