@@ -42,6 +42,13 @@ def aver(i,j,Lhalf):
 def displacement(ix,iy,iz,jx,jy,jz,Lhalf):
     return math.sqrt(dist(ix,jx,Lhalf)**2 +dist(iy,jy,Lhalf)**2 +dist(iz,jz,Lhalf)**2)
 
+def ensure_dir(filename):
+    dirname = os.path.dirname(filename)
+    if dirname:
+        try:
+            os.makedirs(dirname)
+        except OSError:
+            pass
 
 M = myparams.M
 
@@ -56,6 +63,9 @@ for Tdir in list_T:
     T = Tdir.split('/T')[1].split('/')[0]
     print(Tdir)
     print('\n\n****** Processing T={}'.format(T))
+
+    ensure_dir('output_ML/T{}'.format(T))
+    ensure_dir('NEB_calculations/T{}'.format(T))
 
     # loop over all the glasses separately
     list_conf = glob.glob('{}/*'.format(Tdir))
