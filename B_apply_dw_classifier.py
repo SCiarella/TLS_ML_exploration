@@ -97,7 +97,7 @@ print('\n*Done reading the glasses')
 try:
     old_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
 except:
-    print('First time running this code')
+    print('First time running this code. Have you already trained the classifier using C_* ?')
     old_df=pd.DataFrame()
 
 if len(new_df)<len(old_df):
@@ -135,7 +135,12 @@ new_df.to_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
 # (3) apply the dw Filter 
 start= time.time()
 classifier_save_path = 'MLmodel/dw-classification-M{}'.format(M)
-print('\nUsing the DW filter trained in {}'.format(classifier_save_path))
+# check if the model is there
+if not os.path.isdir(classifier_save_path):
+    print('I am looking for the classifieri in {}, but I can not find it. If this is the first time, you have to run C_* before this')
+    sys.exit()
+else:
+    print('\nUsing the DW filter trained in {}'.format(classifier_save_path))
 
 print('\n* Classifier loading',flush=True)
 dwclassifier = TabularPredictor.load(classifier_save_path) 
