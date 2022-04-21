@@ -7,10 +7,12 @@
 
 
 
-The idea of this project is to use machine learning to speed up the exploration of the landscape of glassy materials.
+The idea of this project is to use *machine learning* to **speed up** the exploration of the landscape of glassy materials.
 In particular two-level systems (TLS) are extremely interesting, but hard to find in molecular dynamics (MD) simulations.
 This program is able to construct all the pairs of inherent structures (IS or energy minima) combining the provided IS and predict in $10^{-5}$ their quantum splitting, thus suggesting which one are likely to be TLS.
 
+this:
+![10^{-5}](https://latex.codecogs.com/svg.latex?x%3D%5Cfrac%7B-b%5Cpm%5Csqrt%7Bb%5E2-4ac%7D%7D%7B2a%7D)
 
 # Installation
 
@@ -86,7 +88,7 @@ python B_* && python C_*
 ```
 to train the dw classifier for the first time.
 
-Then in order to predict if your unknown pairs are dw or not you run
+Then in order to predict if your unknown pairs are dw or not you run once again
 ```
 python B_* 
 ```
