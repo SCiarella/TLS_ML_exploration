@@ -113,10 +113,9 @@ python A_* && python B_* && python E_*
 in order to obtain predictions also for this new data.
 
 
----
 | :point_up:        | If you have new NEB results you can **re-train the ML models**. |
 |---------------|:------------------------|
-**_Optionally:_** 
+
 In particular you can retrain the dw classifier with
 ```
 python A_* && python C_* 
@@ -125,7 +124,6 @@ and you can train the qs predictor with
 ```
 python A_* && python E_* 
 ```
----
 
 ### Validation
 It is possible to evaluate the performances of the ML models by running
@@ -143,7 +141,7 @@ The content of `output_ML/dw_classifier_performances.txt` will provide an estima
 The qs predictor can be evaluated by looking at the plots in `output_ML/qs-true_vs_AI_t*set.png` that will show the quality of the prediction over the training set and the test set (not used for training).
 Additionally it is possible to look at `output_ML/T*/splitting_cdf_T*.png` which reports the cumulativie distribution of the energy splitting, comparing the NEBs to the ML predictions, and `output_ML/T*/TLS-search-efficiency.png` which reports the efficiency of the ML approach showing how many NEBs are required to find all the TLS available so far.
 
-
+---
 ## Output of the ML model
 The most interesting output of the ML model is the database in `output_ML/T*/predictedQs_T*.csv`
 It contains the quantum splitting prediction for all the pairs of minima, ordered from smallest to largest.
