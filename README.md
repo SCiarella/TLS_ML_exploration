@@ -85,6 +85,8 @@ to prepare all the pairs, followed by
 python B_* && python C_* 
 ```
 to train the dw classifier for the first time.
+| :memo:        | Notice that some data are already provided to train the dw classifier and the qs predictor       |
+|---------------|:------------------------|
 
 Then in order to predict if your unknown pairs are dw or not you run once again
 ```
