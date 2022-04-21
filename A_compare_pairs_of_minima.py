@@ -64,8 +64,8 @@ for Tdir in list_T:
     print(Tdir)
     print('\n\n****** Processing T={}'.format(T))
 
-    ensure_dir('output_ML/T{}'.format(T))
-    ensure_dir('NEB_calculations/T{}'.format(T))
+    ensure_dir('output_ML/T{}/'.format(T))
+    ensure_dir('NEB_calculations/T{}/'.format(T))
 
     # loop over all the glasses separately
     list_conf = glob.glob('{}/*'.format(Tdir))
