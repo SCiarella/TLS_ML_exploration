@@ -19,6 +19,7 @@ To install all the prerequired packages from a fresh conda environment run the f
 conda create -n tls_exploration -y python=3.9
 conda activate tls_exploration
 conda install -y -c conda-forge statsmodels
+conda install -c conda-forge multiprocess -y
 git clone https://github.com/SCiarella/autogluon
 cd autogluon && ./full_install.sh
 ```
