@@ -14,6 +14,8 @@ from shutil import copyfile
 import numpy as np
 import pandas as pd
 import myparams
+#import multiprocessing as mp
+import multiprocess as mp
 
 
 # The goal of this code is to prepare a file for each T*/Conf*ij pair 
@@ -207,7 +209,6 @@ if __name__ == "__main__":
                 return(worker_df)
             
             # Initialize the pool
-            import multiprocessing as mp
             pool = mp.Pool(mp.cpu_count())
             #pool = mp.Pool(Nprocessors)
             
