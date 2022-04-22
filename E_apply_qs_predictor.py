@@ -22,7 +22,7 @@ import myparams
 M = myparams.M
 natoms = 1500
 save_path='MLmodel/qs-regression-M{}'.format(M)
-low_thresh_qs=0.0003
+low_thresh_qs=0.00001
 
 # check if the model is there
 if not os.path.isdir(save_path):
