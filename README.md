@@ -38,7 +38,7 @@ The package is already ready to run and it just needs your new data.
 The repository consist in a series of python codes named `[A-G]_*.py` . 
 
 In brief, each of them has the following task:
-* **A**\*.py:  constructs all the pairs of minima
+* **A**\*.py:  constructs all the pairs of minima (a version for binary file format is also available)
 * **B**\*.py:  classifies double wells (dw)
 * **C**\*.py:  re-trains the dw classifier
 * **D**\*.py:  validates the performances of the dw classifier
@@ -54,6 +54,12 @@ This contains the IS obtained from the simulations. In order for the codes to wo
 ```
 Configurations/minima/T{T_i}/Cnf-{xxx}/{energy_i}.conf.txt
 ```
+or alternatively if you want to use binary file, they should follow this conventions 
+```
+Configurations/minima/T{T_i}/Cnf-{xxx}/{energy_i}.conf
+```
+where the `.txt` has been dropped.
+
 
 #### NEB_calculations/*
 This directory contains the *exact* results of the NEB calculations. We need to collect them for two reasons: 

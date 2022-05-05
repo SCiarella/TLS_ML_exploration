@@ -55,15 +55,6 @@ for Tdir in list_T:
     dw_df = dw_df.sort_values(by='quantum_splitting')
     dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_allpairs.csv'.format(Tdir,T),index=False)
 
-    # Now I exclude the pairs that have already been used
-    used_df = pd.read_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M))
-    used_df = used_df[used_df['i']!='NotAvail']
-    used_df = used_df.drop(columns=['quantum_splitting'])
-    print(dw_df)
-    print(used_df)
-    ughi_df = pd.merge(dw_df, used_df) 
-    print(ughi_df)
-
 
     # load the NEB data for the plot
     list_neb_qs=[]
@@ -91,4 +82,15 @@ for Tdir in list_T:
     axs.legend()
     plt.savefig("{}/splitting_cdf_T{}.png".format(Tdir,T), dpi=150, bbox_inches="tight");
     plt.close()
+
+
+    # Now I exclude the pairs that have already been used
+    dw_df = dw_df.drop(columns=['is_dw']).round(decimals=10)
+    used_df = pd.read_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M)).round(decimals=10)
+    used_df = used_df[used_df['i']!='NotAvail']
+    used_df = used_df.drop(columns=['quantum_splitting'])
+    remove_df = pd.merge(dw_df, used_df) 
+    print('Since for {} pairs we already run the NEB, we store them separately'.format(len(remove_df)))
+    dw_df = dw_df[~dw_df.isin(remove_df)].dropna()
+    dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_newpairs.csv'.format(Tdir,T),index=False)
 

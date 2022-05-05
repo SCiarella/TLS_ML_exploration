@@ -128,7 +128,7 @@ if __name__ == "__main__":
                     # the first info I need is DE
                     DE = float(j)-float(i)
 
-                    # If DE*N is larger than 1, then the pair will never be a dw nor a tls
+                    # If DE is larger than 1, then the pair will never be a dw nor a tls
                     if DE*1500 > 1:
                         continue
     
