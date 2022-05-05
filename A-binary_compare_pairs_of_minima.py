@@ -123,18 +123,9 @@ if __name__ == "__main__":
                 worker_df=pd.DataFrame()
                 for pair in chunk:
                     i, j = pair
-                    ifilename = '{}/{}.conf.txt'.format(confdir,i)
-                    jfilename = '{}/{}.conf.txt'.format(confdir,j)
+                    ifilename = '{}/{}.conf'.format(confdir,i)
+                    jfilename = '{}/{}.conf'.format(confdir,j)
 
-
-                    f = FortranFile(path, 'r')
-                    [N]=f.read_ints(np.int32)
-                    box=np.zeros(3)
-                    box=f.read_reals(np.float64)
-                    coord=np.zeros((N, 4))
-                    for i in range(N):
-                       coord[i,:]=f.read_reals(np.float64)
-                    f.close()
                 
                     # the first info I need is DE
                     DE = float(j)-float(i)
@@ -144,50 +135,45 @@ if __name__ == "__main__":
                         continue
     
                     # then I read the two files looking for the M particles that displaced the most
+                    # * notice that they are binary files
                     try:
-                        ifile= open(ifilename, 'r')
-                        jfile= open(jfilename, 'r')
+                        ifile = FortranFile(ifilename, 'r')
+                        jfile = FortranFile(jfilename, 'r')
                     except Exception as e:
                         print('\nError: ')
                         print(e)
                         sys.exit(0)
-    
                     
-                    #skipping header 
-                    for n in range(5):
-                        next(ifile)
-                        next(jfile)
-                    # This line contains the (half) box size 
-                    iL=ifile.readline()
-                    jL=jfile.readline()
-                    Li=float((iL.split('-')[1]).split(' ')[0])
-                    Lj=float((jL.split('-')[1]).split(' ')[0])
-                    if math.fabs(Li-Lj)>1e-10 :
-                        print('\nError: Li=%f while Lj=%f'%(Li,Lj))
+                    [Ni]=ifile.read_ints(np.int32)
+                    [Nj]=jfile.read_ints(np.int32)
+                    if Ni!=Nj:
+                        print('Error of i-j file energy inconsistence')
                         sys.exit()
-                    #skipping useless lines 
-                    for n in range(12):
-                        next(ifile)
-                        next(jfile)
-    
-                    # Read and process files
-                    ilines=ifile.readlines()
-                    jlines=jfile.readlines()
-                    # now I read all the varaibles for the df
+                    N = Ni
+
+                    # Now I read and compare 
+                    ibox=ifile.read_reals(np.float64)
+                    jbox=jfile.read_reals(np.float64)
+                    # I am interested in half of L for PBC
+                    if ibox[0]==jbox[0]:
+                        L=ibox[0]/2
+                    else:
+                        print('Error of i-j file boxsize inconsistence')
+                        sys.exit()
+                    
+                    # Now I read the coordinates and process the variables
                     pair_variables=[]
-                    for (il,jl) in zip(ilines,jlines):
-                        # Read the variables
-                        ix=float(il.split()[3])
-                        iy=float(il.split()[4])
-                        iz=float(il.split()[5])
-                        jx=float(jl.split()[3])
-                        jy=float(jl.split()[4])
-                        jz=float(jl.split()[5])
-                        d = {'x': aver(ix,jx,Li)}
-                        d['y']=aver(iy,jy,Li)
-                        d['z']=aver(iz,jz,Li)
-                        d['displacement']=displacement(ix,iy,iz,jx,jy,jz,Li)
+                    for n in range(N):
+                        ir, ix, iy, iz = ifile.read_reals(np.float64)
+                        jr, jx, jy, jz = jfile.read_reals(np.float64)
+                        d = {'x': aver(ix,jx,L)}
+                        d['y']=aver(iy,jy,L)
+                        d['z']=aver(iz,jz,L)
+                        d['displacement']=displacement(ix,iy,iz,jx,jy,jz,L)
                         pair_variables.append(d)
+
+                    ifile.close()
+                    jfile.close()
     
                     # make the dictionaty of all the differencies into a df
                     single_pair_df = pd.DataFrame(pair_variables).astype(float)
@@ -239,4 +225,3 @@ if __name__ == "__main__":
             
             print('\n*Done\n\n')
             full_df.to_pickle(full_df_name)
-        
