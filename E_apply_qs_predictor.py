@@ -53,7 +53,17 @@ for Tdir in list_T:
     # store the prediction
     dw_df['quantum_splitting']=y_pred_by_AI
     dw_df = dw_df.sort_values(by='quantum_splitting')
-    dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}.csv'.format(Tdir,T),index=False)
+    dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_allpairs.csv'.format(Tdir,T),index=False)
+
+    # Now I exclude the pairs that have already been used
+    used_df = pd.read_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M))
+    used_df = used_df[used_df['i']!='NotAvail']
+    used_df = used_df.drop(columns=['quantum_splitting'])
+    print(dw_df)
+    print(used_df)
+    ughi_df = pd.merge(dw_df, used_df) 
+    print(ughi_df)
+
 
     # load the NEB data for the plot
     list_neb_qs=[]

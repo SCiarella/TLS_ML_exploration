@@ -69,9 +69,13 @@ NEB_calculations/T{T_i}/Qs_calcuations.txt 	#(list of calculated Qs)
 This is the directory that contains the output of the ML. 
 *We use to ML predictions to decide for which pairs we run NEB*. In particular this information is contained in 
 ```
-output_ML/T{T_i}/predictedQs_T{T_i}.csv 	
+output_ML/T{T_i}/predictedQs_T{T_i}_allpairs.csv 	
 ```
-which lists the predicted qs for all the pairs we have available.
+which lists the predicted qs for all the pairs we have available, and
+```
+output_ML/T{T_i}/predictedQs_T{T_i}_newpairs.csv 	
+```
+which lists the predicted qs only for the pairs for which we have not run the NEB.
 
 
 # Quick run
@@ -144,6 +148,6 @@ Additionally it is possible to look at `output_ML/T*/splitting_cdf_T*.png` which
 
 ---
 ## Output of the ML model
-The most interesting output of the ML model is the database in `output_ML/T*/predictedQs_T*.csv`
+The most interesting output of the ML model is the database in `output_ML/T*/predictedQs_T*_newpairs.csv`
 It contains the quantum splitting prediction for all the pairs of minima, ordered from smallest to largest.
 This means that the **_next NEBs that you should run_** are for the pairs at the beginning of this list.

@@ -16,6 +16,7 @@ import pandas as pd
 import myparams
 #import multiprocessing as mp
 import multiprocess as mp
+from scipy.io import FortranFile
 
 
 # The goal of this code is to prepare a file for each T*/Conf*ij pair 
@@ -124,6 +125,16 @@ if __name__ == "__main__":
                     i, j = pair
                     ifilename = '{}/{}.conf.txt'.format(confdir,i)
                     jfilename = '{}/{}.conf.txt'.format(confdir,j)
+
+
+                    f = FortranFile(path, 'r')
+                    [N]=f.read_ints(np.int32)
+                    box=np.zeros(3)
+                    box=f.read_reals(np.float64)
+                    coord=np.zeros((N, 4))
+                    for i in range(N):
+                       coord[i,:]=f.read_reals(np.float64)
+                    f.close()
                 
                     # the first info I need is DE
                     DE = float(j)-float(i)
