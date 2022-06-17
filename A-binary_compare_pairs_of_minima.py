@@ -19,6 +19,7 @@ import multiprocess as mp
 from scipy.io import FortranFile
 
 
+
 # The goal of this code is to prepare a file for each T*/Conf*ij pair 
 # Each file will be a df where each row consists in   
 #   DE + Dxyz * M particles
@@ -53,12 +54,16 @@ def ensure_dir(filename):
         except OSError:
             pass
 
+
 if __name__ == "__main__":
     M = myparams.M
     
     pairs_dir='Configurations/pairs'
     if not os.path.exists(pairs_dir):
         os.makedirs(pairs_dir, exist_ok=True)
+
+    if not os.path.exists('temp'):
+        os.makedirs('temp', exist_ok=True)
     
     
     # loop over all the temperatures separately
@@ -123,61 +128,89 @@ if __name__ == "__main__":
                 worker_df=pd.DataFrame()
                 for pair in chunk:
                     i, j = pair
-                    ifilename = '{}/{}.conf'.format(confdir,i)
-                    jfilename = '{}/{}.conf'.format(confdir,j)
 
-                
                     # the first info I need is DE
                     DE = float(j)-float(i)
 
                     # If DE is larger than 1, then the pair will never be a dw nor a tls
                     if DE*1500 > 1:
                         continue
-    
-                    # then I read the two files looking for the M particles that displaced the most
-                    # * notice that they are binary files
-                    try:
-                        ifile = FortranFile(ifilename, 'r')
-                        jfile = FortranFile(jfilename, 'r')
-                    except Exception as e:
-                        print('\nError: ')
-                        print(e)
-                        sys.exit(0)
-                    
-                    [Ni]=ifile.read_ints(np.int32)
-                    [Nj]=jfile.read_ints(np.int32)
-                    if Ni!=Nj:
+
+                    # check if either i or j have been already processed
+                    cnf_name = confdir.split('/')[-1].split('_')[0]
+                    ipreprocessed = 'temp/{}_{}.pickle'.format(cnf_name,i)
+                    jpreprocessed = 'temp/{}_{}.pickle'.format(cnf_name,j)
+                    # Check for i
+                    if os.path.isfile(ipreprocessed):
+                        i_df = pd.read_pickle(ipreprocessed)
+                    else:
+                        # If Not I read it from the binary format
+                        ifilename = '{}/{}.conf'.format(confdir,i)
+                        try:
+                            ifile = FortranFile(ifilename, 'r')
+                        except Exception as e:
+                            print('\nError: ')
+                            print(e)
+                            sys.exit(0)
+                        idata = []
+                        # Read N
+                        [Ni]=ifile.read_ints(np.int32)
+                        # Read L
+                        ibox=ifile.read_reals(np.float64)
+                        irxyz = []
+                        for n in range(Ni):
+                            irxyz.append( ifile.read_reals(np.float64) )
+                        i_df = pd.DataFrame(irxyz, columns=['r','x','y','z'])
+                        i_df['N']=Ni
+                        # I am interested in half of L for PBC
+                        i_df['L']=ibox[0]/2
+                        # * Store
+                        i_df.to_pickle(ipreprocessed)
+                        ifile.close()
+                    # Check for j
+                    if os.path.isfile(jpreprocessed):
+                        j_df = pd.read_pickle(jpreprocessed)
+                    else:
+                        jfilename = '{}/{}.conf'.format(confdir,j)
+                        try:
+                            jfile = FortranFile(jfilename, 'r')
+                        except Exception as e:
+                            print('\nError: ')
+                            print(e)
+                            sys.exit(0)
+                        jdata = []
+                        [Nj]=jfile.read_ints(np.int32)
+                        jbox=jfile.read_reals(np.float64)
+                        jrxyz = []
+                        for n in range(Nj):
+                            jrxyz.append( jfile.read_reals(np.float64) )
+                        j_df = pd.DataFrame(jrxyz, columns=['r','x','y','z'])
+                        j_df['N']=Nj
+                        j_df['L']=jbox[0]/2
+                        j_df.to_pickle(jpreprocessed)
+                        jfile.close()
+
+                
+                    # check that N and L are consistent
+                    if i_df['N'].iloc[0]!=j_df['N'].iloc[0]:
                         print('Error of i-j file energy inconsistence')
                         sys.exit()
-                    N = Ni
-
-                    # Now I read and compare 
-                    ibox=ifile.read_reals(np.float64)
-                    jbox=jfile.read_reals(np.float64)
-                    # I am interested in half of L for PBC
-                    if ibox[0]==jbox[0]:
-                        L=ibox[0]/2
-                    else:
+                    N = i_df['N'][0]
+                    if i_df['L'].iloc[0]!=j_df['L'].iloc[0]:
                         print('Error of i-j file boxsize inconsistence')
                         sys.exit()
+                    L = i_df['L'][0]
                     
-                    # Now I read the coordinates and process the variables
-                    pair_variables=[]
-                    for n in range(N):
-                        ir, ix, iy, iz = ifile.read_reals(np.float64)
-                        jr, jx, jy, jz = jfile.read_reals(np.float64)
-                        d = {'x': aver(ix,jx,L)}
-                        d['y']=aver(iy,jy,L)
-                        d['z']=aver(iz,jz,L)
-                        d['displacement']=displacement(ix,iy,iz,jx,jy,jz,L)
-                        pair_variables.append(d)
 
-                    ifile.close()
-                    jfile.close()
-    
                     # make the dictionaty of all the differencies into a df
-                    single_pair_df = pd.DataFrame(pair_variables).astype(float)
-    
+                    diff_df = pd.concat([i_df, j_df], axis=1)
+                    diff_df = diff_df.set_axis(['ri','xi','yi','zi','Ni','Li','rj','xj','yj','zj','Nj','Lj'], axis=1, inplace=False)
+                    single_pair_df = pd.DataFrame()
+                    single_pair_df['x'] = diff_df.apply(lambda row : aver(row['xi'],row['xj'], row['Li']), axis = 1)
+                    single_pair_df['y'] = diff_df.apply(lambda row : aver(row['yi'],row['yj'], row['Li']), axis = 1)
+                    single_pair_df['z'] = diff_df.apply(lambda row : aver(row['zi'],row['zj'], row['Li']), axis = 1)
+                    single_pair_df['displacement'] = diff_df.apply(lambda row : displacement(row['xi'],row['yi'],row['zi'],row['xj'],row['yj'],row['zj'], row['Li']), axis = 1)
+
                     single_pair_df = single_pair_df.sort_values('displacement',ascending=False)
                     if single_pair_df['displacement'].iloc[0] <1e-10:
                         print('Warning: small displacement (largest is %f)'%single_pair_df['displacement'].iloc[0])
@@ -225,3 +258,9 @@ if __name__ == "__main__":
             
             print('\n*Done\n\n')
             full_df.to_pickle(full_df_name)
+
+            # remove all the tempfiles
+            cnf_name = confdir.split('/')[-1].split('_')[0]
+            temp_list = glob.glob('temp/{}_*.pickle'.format(cnf_name))
+            for tempfile in temp_list:
+                os.remove(tempfile)
