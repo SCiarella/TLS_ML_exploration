@@ -52,6 +52,10 @@ if __name__ == "__main__":
     
     # then load the info about all the pairs
     pairs_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+    # and format in the correct way
+    pairs_df['i'] = pairs_df['i'].astype(float)
+    pairs_df['j'] = pairs_df['j'].astype(float)
+    pairs_df = pairs_df.round(decimals=10)
     
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
@@ -68,9 +72,8 @@ if __name__ == "__main__":
     # If we are not exited, it means that we have more qs data to use to retrain the model
     
     
-    
     # split this task between parallel workers
-    elements_per_worker=10
+    elements_per_worker=100
     chunks=[list_neb_qs[i:i + elements_per_worker] for i in range(0, len(list_neb_qs), elements_per_worker)]
     n_chunks = len(chunks)
     print('We are going to submit {} chunks to get the data\n'.format(n_chunks))
@@ -89,9 +92,9 @@ if __name__ == "__main__":
             elif len(a)==1:
                 a['quantum_splitting']=qs
                 worker_df = pd.concat([worker_df,a])
-    #        else:
-    #            print('Error: we do not have {}'.format(element))
-    #            sys.exit()
+           # else:
+           #     print('Error: we do not have {}'.format(element))
+           #     sys.exit()
         return worker_df
             
     # Initialize the pool
@@ -104,17 +107,18 @@ if __name__ == "__main__":
     missed_dw=0
     for df_chunk in results:
         qs_df= pd.concat([qs_df,df_chunk])
-    print('Constructed the database of {} pairs'.format(len(qs_df)))
+    print('From the NEB calculations I constructed a database of {} pairs for which I have the input informations.'.format(len(qs_df)))
     
     
     # *******
     # add the pretrained data (if any)
     qs_df = pd.concat([qs_df,pretrain_df])
     qs_df = qs_df.drop_duplicates()
+    qs_df = qs_df.reset_index(drop=True)
     
     
     # This is the new training df that will be stored at the end 
-    new_training_df = qs_df
+    new_training_df = qs_df.copy()
     if len(new_training_df)<=len(used_data):
         print('\n(!) After removing the duplicates it appears that the number of data has not increased since the last time')
         if os.path.isfile('{}/predictor.pkl'.format(model_path)):

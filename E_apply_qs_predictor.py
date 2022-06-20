@@ -35,6 +35,8 @@ predictor.persist_models()
 
 # I loop over all the T separately
 list_T = glob.glob('output_ML/T*')
+if len(list_T)==0:
+    print('There are no data in output_ML. Did you run B ?')
 for Tdir in list_T:
     T = Tdir.split('/T')[1].split('/')[0]
 
@@ -86,11 +88,19 @@ for Tdir in list_T:
 
     # Now I exclude the pairs that have already been used
     dw_df = dw_df.drop(columns=['is_dw']).round(decimals=10)
-    used_df = pd.read_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M)).round(decimals=10)
+    used_df = pd.read_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M))
     used_df = used_df[used_df['i']!='NotAvail']
     used_df = used_df.drop(columns=['quantum_splitting'])
+    used_df['i'] = used_df['i'].astype(float)
+    used_df['j'] = used_df['j'].astype(float)
+    used_df = used_df.round(decimals=10)
+    dw_df.reset_index(drop=True)
+    used_df.reset_index(drop=True)
+    used_df = used_df[['i','j','conf']]
+    dw_df['index'] = dw_df.index
     remove_df = pd.merge(dw_df, used_df) 
+    remove_df = remove_df.set_index('index')
+    dw_df = dw_df.drop(columns='index')
     print('Since for {} pairs we already run the NEB, we store them separately'.format(len(remove_df)))
     dw_df = dw_df[~dw_df.isin(remove_df)].dropna()
     dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_newpairs.csv'.format(Tdir,T),index=False)
-

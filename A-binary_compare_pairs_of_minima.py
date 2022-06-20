@@ -62,8 +62,8 @@ if __name__ == "__main__":
     if not os.path.exists(pairs_dir):
         os.makedirs(pairs_dir, exist_ok=True)
 
-    if not os.path.exists('temp'):
-        os.makedirs('temp', exist_ok=True)
+    if not os.path.exists('.temp'):
+        os.makedirs('.temp', exist_ok=True)
     
     
     # loop over all the temperatures separately
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     
             
             # and I split them in chunks to give to separate parallel workers
-            pairs_per_worker=200
+            pairs_per_worker=100
             chunks=[difflist[i:i + pairs_per_worker] for i in range(0, len(difflist), pairs_per_worker)]
             n_chunks = len(chunks)
             print('We are going to submit {} chunks\n'.format(n_chunks))
@@ -138,8 +138,8 @@ if __name__ == "__main__":
 
                     # check if either i or j have been already processed
                     cnf_name = confdir.split('/')[-1].split('_')[0]
-                    ipreprocessed = 'temp/{}_{}.pickle'.format(cnf_name,i)
-                    jpreprocessed = 'temp/{}_{}.pickle'.format(cnf_name,j)
+                    ipreprocessed = '.temp/{}_{}.pickle'.format(cnf_name,i)
+                    jpreprocessed = '.temp/{}_{}.pickle'.format(cnf_name,j)
                     # Check for i
                     if os.path.isfile(ipreprocessed):
                         i_df = pd.read_pickle(ipreprocessed)
@@ -261,6 +261,6 @@ if __name__ == "__main__":
 
             # remove all the tempfiles
             cnf_name = confdir.split('/')[-1].split('_')[0]
-            temp_list = glob.glob('temp/{}_*.pickle'.format(cnf_name))
+            temp_list = glob.glob('.temp/{}_*.pickle'.format(cnf_name))
             for tempfile in temp_list:
                 os.remove(tempfile)
