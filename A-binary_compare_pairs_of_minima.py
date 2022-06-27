@@ -1,8 +1,5 @@
 import numpy as np
 import math
-import itertools
-import random
-import gzip
 import gzip
 import io
 import os
@@ -11,7 +8,6 @@ import fnmatch
 import csv
 import glob
 from shutil import copyfile
-import numpy as np
 import pandas as pd
 import myparams
 #import multiprocessing as mp
@@ -26,25 +22,48 @@ from scipy.io import FortranFile
 
 # you have to rerun this code each time you add new minima for a glass, or you add new glasses
 
-def dist(i,j,Lhalf):
+def dist(i,j,Lhalf,L):
     #distance between coordinate i and j using PBC
     distance = i - j
     while distance > Lhalf:
-        distance -= 2*Lhalf
+        distance -= L
     while distance < -Lhalf:
-        distance += 2*Lhalf
+        distance += L
     return distance
+
 def aver(i,j,Lhalf):
     # average position between coordinate i and j
     # not trivial due to PBC
-    ijaver = j + dist(i,j,Lhalf)*0.5
+    ijaver = j + dist(i,j,Lhalf,2*Lhalf)*0.5
     while ijaver > Lhalf:
         ijaver -= 2*Lhalf
     while ijaver < -Lhalf:
         ijaver += 2*Lhalf
     return ijaver
+
 def displacement(ix,iy,iz,jx,jy,jz,Lhalf):
-    return math.sqrt(dist(ix,jx,Lhalf)**2 +dist(iy,jy,Lhalf)**2 +dist(iz,jz,Lhalf)**2)
+    L = 2*Lhalf
+    dx = dist(ix,jx,Lhalf,L)
+    dy = dist(iy,jy,Lhalf,L)
+    dz = dist(iz,jz,Lhalf,L)
+    return math.sqrt(dx*dx + dy*dy + dz*dz)
+
+def displacement_v2(ix,iy,iz,jx,jy,jz,Lhalf):
+    L = 2*Lhalf
+    dx = dist(ix,jx,Lhalf,L)
+    dy = dist(iy,jy,Lhalf,L)
+    dz = dist(iz,jz,Lhalf,L)
+    return dx*dx + dy*dy + dz*dz
+
+#def displacement_v2(ix,iy,iz,jx,jy,jz,Lhalf):
+#    L = 2*Lhalf
+#    dx = dist(ix,jx,Lhalf,L)
+#    dy = dist(iy,jy,Lhalf,L)
+#    dz = dist(iz,jz,Lhalf,L)
+#    if math.fabs(dx)+math.fabs(dy)+math.fabs(dz) < 0.01:
+#        return 0
+#    else:
+#        return math.sqrt(dx*dx + dy*dy + dz*dz)
 
 def ensure_dir(filename):
     dirname = os.path.dirname(filename)
@@ -200,26 +219,31 @@ if __name__ == "__main__":
                         print('Error of i-j file boxsize inconsistence')
                         sys.exit()
                     L = i_df['L'][0]
+
                     
 
                     # make the dictionaty of all the differencies into a df
                     diff_df = pd.concat([i_df, j_df], axis=1)
                     diff_df = diff_df.set_axis(['ri','xi','yi','zi','Ni','Li','rj','xj','yj','zj','Nj','Lj'], axis=1, inplace=False)
-                    single_pair_df = pd.DataFrame()
-                    single_pair_df['x'] = diff_df.apply(lambda row : aver(row['xi'],row['xj'], row['Li']), axis = 1)
-                    single_pair_df['y'] = diff_df.apply(lambda row : aver(row['yi'],row['yj'], row['Li']), axis = 1)
-                    single_pair_df['z'] = diff_df.apply(lambda row : aver(row['zi'],row['zj'], row['Li']), axis = 1)
-                    single_pair_df['displacement'] = diff_df.apply(lambda row : displacement(row['xi'],row['yi'],row['zi'],row['xj'],row['yj'],row['zj'], row['Li']), axis = 1)
+                    diff_df['displacement'] = np.vectorize(displacement)(diff_df['xi'],diff_df['yi'],diff_df['zi'],diff_df['xj'],diff_df['yj'],diff_df['zj'], diff_df['Li'])
 
-                    single_pair_df = single_pair_df.sort_values('displacement',ascending=False)
-                    if single_pair_df['displacement'].iloc[0] <1e-10:
-                        print('Warning: small displacement (largest is %f)'%single_pair_df['displacement'].iloc[0])
-                        print(single_pair_df)
-                        print(single_pair_df['displacement'])
+                    diff_df = diff_df.sort_values('displacement',ascending=False)
+                    if diff_df['displacement'].iloc[0] <1e-10:
+                        print('Warning: small displacement (largest is %f)'%diff_df['displacement'].iloc[0])
+                        print(diff_df)
+                        print(diff_df['displacement'])
                         sys.exit()
     
-                    # To save space I store only the M_to_store particles that displaced the most
-                    single_pair_df = single_pair_df[:M]
+                    # ** I store only the M_to_store particles that displaced the most
+                    diff_df = diff_df[:M]
+
+                    # For those single pairs measure the average position of the particles that displaced the most
+                    diff_df['x'] = np.vectorize(aver)(diff_df['xi'],diff_df['xj'], diff_df['Li'])
+                    diff_df['y'] = np.vectorize(aver)(diff_df['yi'],diff_df['yj'], diff_df['Li'])
+                    diff_df['z'] = np.vectorize(aver)(diff_df['zi'],diff_df['zj'], diff_df['Li'])
+
+                    # then remove the columns that are not needed
+                    single_pair_df=diff_df[['x','y','z','displacement']]
     
                     # make it into a single row
                     single_pair_df=single_pair_df.reset_index(drop=True)
