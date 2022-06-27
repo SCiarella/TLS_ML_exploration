@@ -23,6 +23,7 @@ M = myparams.M
 natoms = 1500
 save_path='MLmodel/qs-regression-M{}'.format(M)
 low_thresh_qs=0.00001
+ndecimals=10
 
 # check if the model is there
 if not os.path.isdir(save_path):
@@ -101,6 +102,27 @@ for Tdir in list_T:
     remove_df = pd.merge(dw_df, used_df) 
     remove_df = remove_df.set_index('index')
     dw_df = dw_df.drop(columns='index')
-    print('Since for {} pairs we already run the NEB, we store them separately'.format(len(remove_df)))
     dw_df = dw_df[~dw_df.isin(remove_df)].dropna()
+    print('\n*For {} pairs we already run the NEB and we know the exact qs, so we do not need to predict them. Now we remain with {} pairs'.format(len(remove_df),len(dw_df)))
+
+    # then I also exclude the pairs that I know are NON-dw
+    list_nondw=[]
+    with open('NEB_calculations/T{}/NON-DW.txt'.format(T)) as qs_file:
+        lines = qs_file.readlines()
+        for line in lines:
+            conf = line.split()[0]
+            i,j = line.split()[1].split('_')
+            i = round(float(i),ndecimals)
+            j = round(float(j),ndecimals)
+            list_nondw.append((conf,i,j))
+    nondw=pd.DataFrame(list_nondw,columns=['conf','i','j'])
+    dw_df.reset_index(drop=True)
+    dw_df['index'] = dw_df.index
+    remove_df = pd.merge(dw_df, nondw) 
+    remove_df = remove_df.set_index('index')
+    dw_df = dw_df.drop(columns='index')
+    dw_df = dw_df[~dw_df.isin(remove_df)].dropna()
+    print('\n*We know that {} pairs are non-dw (from NEB), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(dw_df)))
+
+    # Storing
     dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_newpairs.csv'.format(Tdir,T),index=False)
