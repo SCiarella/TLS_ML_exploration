@@ -122,7 +122,7 @@ for Tdir in list_T:
     remove_df = remove_df.set_index('index')
     dw_df = dw_df.drop(columns='index')
     dw_df = dw_df[~dw_df.isin(remove_df)].dropna()
-    print('\n*We know that {} pairs are non-dw (from NEB), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(dw_df)))
+    print('\n*We know that {} of the new pairs are non-dw (from NEB), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(dw_df)))
 
     # Storing
     dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_newpairs.csv'.format(Tdir,T),index=False)
