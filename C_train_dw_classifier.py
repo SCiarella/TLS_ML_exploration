@@ -58,7 +58,11 @@ if __name__ == "__main__":
     print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_neb_nondw),len(list_neb_dw)))
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
-    pretrain_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+    try:
+        pretrain_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+    except:
+        print('\nNotice that no pretraining is available')
+        pretrain_df = pd.DataFrame()
     
     #************
     # * Check wether or not you should retrain the model
@@ -140,10 +144,11 @@ if __name__ == "__main__":
     
     # *******
     # add the pretrained data (if any)
-    dw_df = pd.concat([dw_df,pretrain_df[pretrain_df['is_dw']>0]])
-    dw_df=dw_df.drop_duplicates()
-    non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['is_dw']<1]])
-    non_dw_df=non_dw_df.drop_duplicates()
+    if len(pretrain_df)>0:
+        dw_df = pd.concat([dw_df,pretrain_df[pretrain_df['is_dw']>0]])
+        dw_df=dw_df.drop_duplicates()
+        non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['is_dw']<1]])
+        non_dw_df=non_dw_df.drop_duplicates()
     
     
     # This is the new training df that will be stored at the end 

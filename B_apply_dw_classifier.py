@@ -150,6 +150,9 @@ if __name__ == "__main__":
     print('\n* Classifier starts',flush=True)
     new_df['is_dw'] = dwclassifier.predict(new_df)
     timeclass=time.time() -start
+
+    print(new_df)
+    sys.exit()
     
     filtered_dw = new_df[ new_df['is_dw']>0 ] 
     filtered_non_dw = new_df[ new_df['is_dw']<1 ] 

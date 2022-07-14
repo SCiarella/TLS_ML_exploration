@@ -59,7 +59,11 @@ if __name__ == "__main__":
     
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
-    pretrain_df = pd.read_pickle('MLmodel/pretraining-qs-regression-M{}.pickle'.format(M))
+    try:
+        pretrain_df = pd.read_pickle('MLmodel/pretraining-qs-regression-M{}.pickle'.format(M))
+    except:
+        print('\nNotice that no pretraining is available')
+        pretrain_df = pd.DataFrame()
     
     #************
     # * Check wether or not you should retrain the model
@@ -112,9 +116,10 @@ if __name__ == "__main__":
     
     # *******
     # add the pretrained data (if any)
-    qs_df = pd.concat([qs_df,pretrain_df])
-    qs_df = qs_df.drop_duplicates()
-    qs_df = qs_df.reset_index(drop=True)
+    if len(pretrain_df)>0:
+        qs_df = pd.concat([qs_df,pretrain_df])
+        qs_df = qs_df.drop_duplicates()
+        qs_df = qs_df.reset_index(drop=True)
     
     
     # This is the new training df that will be stored at the end 
