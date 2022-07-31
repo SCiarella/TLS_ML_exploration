@@ -168,11 +168,19 @@ if __name__ == "__main__":
     training_hours=myparams.qs_pred_train_hours
     time_limit = training_hours*60*60
     
-    
-    # train
+    # set the weights to give more importance to low quantum splitting 
+    training_set['weights'] = (training_set['quantum_splitting']) ** (-1)
+
+    # And finally do (-1) log of the data such that the numbers get closer and more balanced 
+    training_set['10tominusquantum_splitting'] = training_set['quantum_splitting'].apply(lambda x: -np.log10(x))
+    validation_set['10tominusquantum_splitting'] = validation_set['quantum_splitting'].apply(lambda x: -np.log10(x))
+    new_training_df['10tominusquantum_splitting'] = new_training_df['quantum_splitting'].apply(lambda x: -np.log10(x))
+
+
+    # **** TRAINING
     # * I am excluding KNN because it is problematic
     # * Convert to float to have optimal performances!
-    predictor = TabularPredictor(label='quantum_splitting', path=model_path, eval_metric='mean_squared_error').fit(TabularDataset(training_set.drop(columns=['i','j','conf'])).astype(float), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
+    predictor = TabularPredictor(label='10tominusquantum_splitting', path=model_path, eval_metric='mean_squared_error', sample_weight='weights' , weight_evaluation=True).fit(TabularDataset(training_set.drop(columns=['i','j','conf','quantum_splitting'])).astype(float), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
     
     
     # store

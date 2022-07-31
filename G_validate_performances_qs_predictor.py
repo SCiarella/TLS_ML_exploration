@@ -30,14 +30,13 @@ if __name__ == "__main__":
     training_set = pd.read_pickle('MLmodel/qs-prediction-training-set-M{}.pickle'.format(M))
     
     # ********* RESULTS OVER THE TRAINING SET
-    label= 'quantum_splitting'
-    training_set = training_set.sort_values(label,ascending=False)
-    training_set_nolab = training_set.drop(columns=['i','j','conf',label])
+    training_set = training_set.sort_values('quantum_splitting',ascending=False)
+    qsMAX=2.5
+    print('(Excluding from the plot pairs with qs>{})'.format(qsMAX))
+    training_set=training_set[training_set['quantum_splitting']<qsMAX]
     # * Convert to float to have optimal performances!
-    training_set_nolab = TabularDataset(training_set_nolab).astype(float)
-    y_true_val = np.power(10, -training_set[label])  # values to predict
-    
-    
+    training_set_nolab = TabularDataset(training_set.drop(columns=['i','j','conf','quantum_splitting','10tominusquantum_splitting'])).astype(float)
+    y_true_val = np.power(10, -training_set['10tominusquantum_splitting'])  # values to predict
     
     
     # Load the model
@@ -47,10 +46,11 @@ if __name__ == "__main__":
     y_pred_by_AI = predictor.predict(training_set_nolab)
     y_pred_by_AI = np.power(10, -y_pred_by_AI)
     
+
     print('\n\nPerformances over the training set:')
     perf = predictor.evaluate_predictions(y_true=y_true_val, y_pred=y_pred_by_AI, auxiliary_metrics=True)
     print(perf)
-    
+    print('\n')
     
     
     # Make the prediction plot: qs_real vs qs_train 
@@ -77,10 +77,10 @@ if __name__ == "__main__":
     
     # ********* RESULTS OVER THE TEST SET
     # * Convert to float to have optimal performances!
-    validation_set= validation_set.sort_values(label,ascending=False)
-    validation_set_nolab = validation_set.drop(columns=['i','j','conf',label])
+    validation_set= validation_set.sort_values('quantum_splitting',ascending=False)
+    validation_set_nolab = validation_set.drop(columns=['i','j','conf','quantum_splitting','10tominusquantum_splitting'])
     validation_set_nolab = TabularDataset(validation_set_nolab).astype(float)
-    y_true_val = np.power(10, -validation_set[label])  # values to predict
+    y_true_val = np.power(10, -validation_set['10tominusquantum_splitting'])  # values to predict
     
     # predict
     y_pred_by_AI = predictor.predict(validation_set_nolab)
@@ -89,11 +89,13 @@ if __name__ == "__main__":
     print('\n\nPerformances over the test set:')
     perf = predictor.evaluate_predictions(y_true=y_true_val, y_pred=y_pred_by_AI, auxiliary_metrics=True)
     print(perf)
+
     
     # Make the prediction plot: qs_real vs qs_train 
     fig, axs = plt.subplots()
     x = y_true_val
     y = y_pred_by_AI
+    y = np.fabs(y_pred_by_AI) ##########
     # draw a reference line
     axs.plot([min(x),max(x)], [min(x),max(x)],'b--', alpha=1, lw=1)
     hb = axs.hexbin(x,y,cmap='summer',mincnt=1,gridsize=75, xscale='log', yscale='log', norm=matplotlib.colors.LogNorm())
@@ -170,8 +172,7 @@ if __name__ == "__main__":
         print('Constructed the database of {} pairs.\nPredicting'.format(len(qs_df)))
     
         y_pred_by_AI = predictor.predict(qs_df.drop(columns='quantum_splitting'))
-        y_pred_by_AI = np.power(10, -y_pred_by_AI)
-        qs_df['quantum_splitting_PREDICTED']=y_pred_by_AI
+        qs_df['quantum_splitting_PREDICTED'] = np.power(10, -y_pred_by_AI)
         qs_df=qs_df.sort_values(by='quantum_splitting_PREDICTED',ascending=True)
         print(qs_df)
     
@@ -179,6 +180,7 @@ if __name__ == "__main__":
         y = []
         tls = 0
         neb = 0
+        qs_df['quantum_splitting']= qs_df['quantum_splitting'].astype(float)
         print('Iterating to find TLS')
         for index, row in qs_df.iterrows():
             neb +=1
@@ -195,5 +197,29 @@ if __name__ == "__main__":
         plt.legend()
         plt.tight_layout()
         plt.savefig('output_ML/T{}/TLS-search-efficiency.png'.format(T),dpi=150)
+        plt.close()
+
+        # Plot with confusion matrix
+        qs_df = qs_df[(qs_df['quantum_splitting']<1) & (qs_df['quantum_splitting_PREDICTED']<1)]
+        print(qs_df.sort_values(by='quantum_splitting_PREDICTED',ascending=True))
+        print(qs_df.sort_values(by='quantum_splitting',ascending=True))
+        fig, axs = plt.subplots()
+        x = qs_df['quantum_splitting']
+        y = qs_df['quantum_splitting_PREDICTED']
+        #
+        axs.plot([min(x),max(x)], [min(x),max(x)],'b--', alpha=1, lw=1)
+        axs.plot([min(x),max(x)], [thresh_tls,thresh_tls],'b--', alpha=1, lw=1)
+        axs.axvline(thresh_tls,color='b',linestyle='--', alpha=1, lw=1)
+        hb = axs.hexbin(x,y,cmap='summer',mincnt=1,gridsize=75, xscale='log', yscale='log', norm=matplotlib.colors.LogNorm())
+        axs.set_ylabel('quantum splitting (AI)', size=15)
+        axs.set_xlabel('quantum splitting (True)', size=15)
+        plt.yscale('log') 
+        plt.xscale('log') 
+        axs.legend()
+        cb = fig.colorbar(hb, ax=axs)
+        cb.set_label('counts')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig('output_ML/T{}/confusion-matrix.png'.format(T),dpi=150)
         plt.close()
     
