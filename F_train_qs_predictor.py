@@ -120,7 +120,24 @@ if __name__ == "__main__":
         qs_df = pd.concat([qs_df,pretrain_df])
         qs_df = qs_df.drop_duplicates()
         qs_df = qs_df.reset_index(drop=True)
-    
+
+
+    # Check that the different temperatures are balanced in the data
+    T_list = qs_df['T'].unique()
+    print('\n')
+    ndata_for_each_T=len(qs_df)
+    for T in T_list:
+        nd=len(qs_df[qs_df['T']==T])
+        print('We have {} data at T={}'.format(nd,T))
+        if nd<ndata_for_each_T:
+            ndata_for_each_T=nd
+    print('so we only keep {} for each different T to mantain a balanced dataset'.format(ndata_for_each_T))
+    balanced_df=pd.DataFrame()
+    for T in T_list:
+        balanced_df=pd.concat([balanced_df, (qs_df[qs_df['T']==T]).sample(n=ndata_for_each_T)])
+    qs_df=balanced_df
+
+
     
     # This is the new training df that will be stored at the end 
     new_training_df = qs_df.copy()
@@ -139,22 +156,24 @@ if __name__ == "__main__":
     for mi in range(int(M)):
         new_training_df['displacement_{}'.format(mi)] = new_training_df['displacement_{}'.format(mi)].astype(float)
     
+
+    # ************
     # *** I do (-1) log of the data such that the values are closer and their weight is more balanced in the fitness
-    new_training_df['quantum_splitting'] = new_training_df['quantum_splitting'].apply(lambda x: -np.log10(x))
+    new_training_df['10tominusquantum_splitting'] = new_training_df['quantum_splitting'].apply(lambda x: -np.log10(x))
     
     
     # Pick 10percent of this pairs for validation
-    N = len(qs_df)
+    N = len(new_training_df)
     Nval = int(0.1*N)
     Ntrain = N -Nval
     # shuffle
-    qs_df=qs_df.sample(frac=1, random_state=20, ignore_index=True)
+    new_training_df=new_training_df.sample(frac=1, random_state=20, ignore_index=True)
     # and slice
-    training_set = qs_df.iloc[:Ntrain]
-    validation_set = qs_df.iloc[Ntrain:N]
+    training_set = new_training_df.iloc[:Ntrain]
+    validation_set = new_training_df.iloc[Ntrain:N]
     
     print('\nFrom the overall %d data we prepare:\n\t- training set of %d\n\t- validation set of %d\n\n'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
-    
+
     
     # **************   TRAIN
     #   Notice that autogluon offer different 'presets' option to maximize precision vs data-usage vs time
@@ -168,16 +187,10 @@ if __name__ == "__main__":
     training_hours=myparams.qs_pred_train_hours
     time_limit = training_hours*60*60
     
-    # set the weights to give more importance to low quantum splitting 
+    # and define a weight=1/qs in order to increase the precision for the small qs 
     training_set['weights'] = (training_set['quantum_splitting']) ** (-1)
-
-    # And finally do (-1) log of the data such that the numbers get closer and more balanced 
-    training_set['10tominusquantum_splitting'] = training_set['quantum_splitting'].apply(lambda x: -np.log10(x))
-    validation_set['10tominusquantum_splitting'] = validation_set['quantum_splitting'].apply(lambda x: -np.log10(x))
-    new_training_df['10tominusquantum_splitting'] = new_training_df['quantum_splitting'].apply(lambda x: -np.log10(x))
-
-
-    # **** TRAINING
+    
+    # train
     # * I am excluding KNN because it is problematic
     # * Convert to float to have optimal performances!
     predictor = TabularPredictor(label='10tominusquantum_splitting', path=model_path, eval_metric='mean_squared_error', sample_weight='weights' , weight_evaluation=True).fit(TabularDataset(training_set.drop(columns=['i','j','conf','quantum_splitting'])).astype(float), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])

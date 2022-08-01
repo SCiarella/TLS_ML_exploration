@@ -174,7 +174,6 @@ if __name__ == "__main__":
         y_pred_by_AI = predictor.predict(qs_df.drop(columns='quantum_splitting'))
         qs_df['quantum_splitting_PREDICTED'] = np.power(10, -y_pred_by_AI)
         qs_df=qs_df.sort_values(by='quantum_splitting_PREDICTED',ascending=True)
-        print(qs_df)
     
         x = []
         y = []
@@ -199,20 +198,36 @@ if __name__ == "__main__":
         plt.savefig('output_ML/T{}/TLS-search-efficiency.png'.format(T),dpi=150)
         plt.close()
 
+        true=len(qs_df[(qs_df['quantum_splitting']<thresh_tls)&(qs_df['quantum_splitting_PREDICTED']<thresh_tls)])
+        false_pos=len(qs_df[(qs_df['quantum_splitting']>=thresh_tls)&(qs_df['quantum_splitting_PREDICTED']<thresh_tls)])
+        false_neg=len(qs_df[(qs_df['quantum_splitting']<thresh_tls)&(qs_df['quantum_splitting_PREDICTED']>=thresh_tls)])
+        false=len(qs_df[(qs_df['quantum_splitting']>=thresh_tls)&(qs_df['quantum_splitting_PREDICTED']>=thresh_tls)])
+
         # Plot with confusion matrix
         qs_df = qs_df[(qs_df['quantum_splitting']<1) & (qs_df['quantum_splitting_PREDICTED']<1)]
-        print(qs_df.sort_values(by='quantum_splitting_PREDICTED',ascending=True))
-        print(qs_df.sort_values(by='quantum_splitting',ascending=True))
         fig, axs = plt.subplots()
         x = qs_df['quantum_splitting']
         y = qs_df['quantum_splitting_PREDICTED']
         #
-        axs.plot([min(x),max(x)], [min(x),max(x)],'b--', alpha=1, lw=1)
-        axs.plot([min(x),max(x)], [thresh_tls,thresh_tls],'b--', alpha=1, lw=1)
-        axs.axvline(thresh_tls,color='b',linestyle='--', alpha=1, lw=1)
+        axs.plot([min(x),max(x)], [min(x),max(x)],'k', alpha=1, lw=0.4)
         hb = axs.hexbin(x,y,cmap='summer',mincnt=1,gridsize=75, xscale='log', yscale='log', norm=matplotlib.colors.LogNorm())
         axs.set_ylabel('quantum splitting (AI)', size=15)
         axs.set_xlabel('quantum splitting (True)', size=15)
+        ymin,ymax=axs.get_ylim()
+        xmin,xmax=axs.get_xlim()
+        tls_df=qs_df[qs_df['quantum_splitting']<thresh_tls]
+        ntls=len(tls_df)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+        for y_tls_dens_counter in [thresh_tls, 2*thresh_tls, 5*thresh_tls]:
+            print('Running nebs for qs_predicted<{}, we get {}/{} of the TLS'.format(y_tls_dens_counter,len(tls_df[tls_df['quantum_splitting_PREDICTED']<y_tls_dens_counter]),ntls)) 
+            dens_tls = round(float(len(tls_df[tls_df['quantum_splitting_PREDICTED']<y_tls_dens_counter])/ntls)*100,2) 
+            nnebs = len(qs_df[qs_df['quantum_splitting_PREDICTED']<y_tls_dens_counter])
+            axs.plot([xmin,xmax], [y_tls_dens_counter,y_tls_dens_counter],'k--', label='_nolegend_', alpha=1, lw=1, zorder=10)
+            plt.text(xmax, y_tls_dens_counter, r'$\downarrow$ {}% of TLS, from {} NEB'.format(dens_tls,nnebs), fontsize=6, color='black', va='center', ha='right',zorder=100,bbox=props)
+        axs.fill_between([xmin,thresh_tls], [thresh_tls,thresh_tls], facecolor='palegreen', label='True [n={}]'.format(true),zorder=-100, interpolate=True)
+        axs.fill_between([xmin,thresh_tls], [ymax,ymax], [thresh_tls,thresh_tls], facecolor='paleturquoise', label='False negative [n={}]'.format(false_neg),zorder=-100, interpolate=True)
+        axs.fill_between([thresh_tls,xmax], [thresh_tls,thresh_tls], facecolor='palegoldenrod', label='False positive [n={}]'.format(false_pos),zorder=-100, interpolate=True)
+        axs.fill_between([thresh_tls,xmax], [ymax,ymax], [thresh_tls,thresh_tls], facecolor='lightcoral', label='Negative [n={}]'.format(false),zorder=-100, interpolate=True)
         plt.yscale('log') 
         plt.xscale('log') 
         axs.legend()
@@ -222,4 +237,7 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.savefig('output_ML/T{}/confusion-matrix.png'.format(T),dpi=150)
         plt.close()
+
+        qs_df.to_pickle('output_ML/T{}/neb_qs_df.pickle'.format(T))
+
     

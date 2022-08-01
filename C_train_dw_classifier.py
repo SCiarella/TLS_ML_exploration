@@ -37,32 +37,35 @@ if __name__ == "__main__":
     list_neb_nondw=[]
     list_neb_dw=[]
     list_T = glob.glob('NEB_calculations/*')
-    for Tdir in list_T:
-        T=float(Tdir.split('/T')[-1])
-        with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
-            lines = nondw_file.readlines()
-            for line in lines:
-                conf = line.split()[0]
-                i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
-                list_neb_nondw.append((T,conf,i,j))
-        with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
-            lines = dw_file.readlines()
-            for line in lines:
-                conf = line.split()[0]
-                i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
-                list_neb_dw.append((T,conf,i,j))
+    #un-comment#for Tdir in list_T:
+    #un-comment#    T=float(Tdir.split('/T')[-1])
+    #un-comment#    with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
+    #un-comment#        lines = nondw_file.readlines()
+    #un-comment#        for line in lines:
+    #un-comment#            conf = line.split()[0]
+    #un-comment#            i,j = line.split()[1].split('_')
+    #un-comment#            i = round(float(i),ndecimals)
+    #un-comment#            j = round(float(j),ndecimals)
+    #un-comment#            list_neb_nondw.append((T,conf,i,j))
+    #un-comment#    with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
+    #un-comment#        lines = dw_file.readlines()
+    #un-comment#        for line in lines:
+    #un-comment#            conf = line.split()[0]
+    #un-comment#            i,j = line.split()[1].split('_')
+    #un-comment#            i = round(float(i),ndecimals)
+    #un-comment#            j = round(float(j),ndecimals)
+    #un-comment#            list_neb_dw.append((T,conf,i,j))
     print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_neb_nondw),len(list_neb_dw)))
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
     try:
         pretrain_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+
+        print(pretrain_df.sort_values('Delta_E',ascending=False))
     except:
         print('\nNotice that no pretraining is available')
         pretrain_df = pd.DataFrame()
+
     
     #************
     # * Check wether or not you should retrain the model
@@ -150,6 +153,9 @@ if __name__ == "__main__":
         non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['is_dw']<1]])
         non_dw_df=non_dw_df.drop_duplicates()
     
+#    print(dw_df.sort_values('Delta_E',ascending=False))
+#    print(non_dw_df.sort_values('Delta_E',ascending=False))
+#    sys.exit()
     
     # This is the new training df that will be stored at the end 
     new_training_df = pd.concat([dw_df,non_dw_df])
