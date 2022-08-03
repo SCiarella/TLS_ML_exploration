@@ -153,12 +153,26 @@ if __name__ == "__main__":
         non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['is_dw']<1]])
         non_dw_df=non_dw_df.drop_duplicates()
     
-#    print(dw_df.sort_values('Delta_E',ascending=False))
-#    print(non_dw_df.sort_values('Delta_E',ascending=False))
-#    sys.exit()
+
+    # Check that the different temperatures are balanced in the data
+    qs_df = pd.concat([dw_df,non_dw_df])
+    T_list = qs_df['T'].unique()
+    print('\n')
+    ndata_for_each_T=len(qs_df)
+    for T in T_list:
+        nd=len(qs_df[qs_df['T']==T])
+        print('We have {} data at T={}'.format(nd,T))
+        if nd<ndata_for_each_T:
+            ndata_for_each_T=nd
+    print('so we only keep {} for each different T to mantain a balanced dataset'.format(ndata_for_each_T))
+    balanced_df=pd.DataFrame()
+    for T in T_list:
+        balanced_df=pd.concat([balanced_df, (qs_df[qs_df['T']==T]).sample(n=ndata_for_each_T)])
+    qs_df=balanced_df
+
     
     # This is the new training df that will be stored at the end 
-    new_training_df = pd.concat([dw_df,non_dw_df])
+    new_training_df = qs_df.copy()
     if len(new_training_df)<=len(used_data):
         print('\n(!) After removing the duplicates it appears that the number of data has not increased since the last time')
         if os.path.isfile('{}/predictor.pkl'.format(model_path)):

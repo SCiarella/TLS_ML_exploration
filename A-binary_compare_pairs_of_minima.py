@@ -13,6 +13,7 @@ import myparams
 #import multiprocessing as mp
 import multiprocess as mp
 from scipy.io import FortranFile
+import time
 
 
 
@@ -148,6 +149,8 @@ if __name__ == "__main__":
                 for pair in chunk:
                     i, j = pair
 
+                    start_time=time.time()
+
                     # the first info I need is DE
                     DE = float(j)-float(i)
 
@@ -233,6 +236,16 @@ if __name__ == "__main__":
                         print(diff_df)
                         print(diff_df['displacement'])
                         sys.exit()
+
+
+                    # calculate the total displacement and the PR 
+                    diff_df['dpow2'] = np.square(diff_df['displacement'])
+                    diff_df['dpow4'] = np.square(diff_df['dpow2'])
+                    total_displacement = diff_df['displacement'].sum() 
+                    sum_dpow2 = diff_df['dpow2'].sum() 
+                    sum_dpow4 = diff_df['dpow4'].sum() 
+                    PR = sum_dpow2*sum_dpow2/sum_dpow4
+
     
                     # ** I store only the M_to_store particles that displaced the most
                     diff_df = diff_df[:M]
@@ -259,6 +272,10 @@ if __name__ == "__main__":
                     single_pair_df['j']=j
                     single_pair_df['T']=T
                     single_pair_df['conf']=conf
+
+                    # and also add a column for the PR and displacements
+                    single_pair_df['total_displacement']=total_displacement
+                    single_pair_df['PR']=PR
     
                     # Finally append the line to the database
                     worker_df = pd.concat([worker_df,pd.DataFrame(single_pair_df).T])
@@ -267,8 +284,8 @@ if __name__ == "__main__":
                 return(worker_df)
             
             # Initialize the pool
-            pool = mp.Pool(mp.cpu_count())
-            #pool = mp.Pool(Nprocessors)
+            pool = mp.Pool(1)
+            #pool = mp.Pool(mp.cpu_count())
             
             # *** RUN THE PARALLEL FUNCTION
             results = pool.map(process_chunk, [chunk for chunk in chunks] )

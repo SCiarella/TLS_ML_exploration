@@ -187,6 +187,15 @@ if __name__ == "__main__":
                         print(single_pair_df)
                         print(single_pair_df['displacement'])
                         sys.exit()
+
+                    # calculate the total displacement and the PR 
+                    single_pair_df['dpow2'] = np.square(single_pair_df['displacement'])
+                    single_pair_df['dpow4'] = np.square(single_pair_df['dpow2'])
+                    total_displacement = single_pair_df['displacement'].sum() 
+                    sum_dpow2 = single_pair_df['dpow2'].sum() 
+                    sum_dpow4 = single_pair_df['dpow4'].sum() 
+                    PR = sum_dpow2*sum_dpow2/sum_dpow4
+
     
                     # To save space I store only the M_to_store particles that displaced the most
                     single_pair_df = single_pair_df[:M]
@@ -206,6 +215,10 @@ if __name__ == "__main__":
                     single_pair_df['T']=T
                     single_pair_df['conf']=conf
     
+                    # and also add a column for the PR and displacements
+                    single_pair_df['total_displacement']=total_displacement
+                    single_pair_df['PR']=PR
+
                     # Finally append the line to the database
                     worker_df = pd.concat([worker_df,pd.DataFrame(single_pair_df).T])
             
