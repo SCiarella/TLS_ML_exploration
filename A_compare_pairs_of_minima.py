@@ -226,7 +226,6 @@ if __name__ == "__main__":
             
             # Initialize the pool
             pool = mp.Pool(mp.cpu_count())
-            #pool = mp.Pool(Nprocessors)
             
             # *** RUN THE PARALLEL FUNCTION
             results = pool.map(process_chunk, [chunk for chunk in chunks] )

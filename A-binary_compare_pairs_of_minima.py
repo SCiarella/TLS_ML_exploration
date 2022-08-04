@@ -283,8 +283,7 @@ if __name__ == "__main__":
                 return(worker_df)
             
             # Initialize the pool
-            pool = mp.Pool(1)
-            #pool = mp.Pool(mp.cpu_count())
+            pool = mp.Pool(mp.cpu_count())
             
             # *** RUN THE PARALLEL FUNCTION
             results = pool.map(process_chunk, [chunk for chunk in chunks] )
