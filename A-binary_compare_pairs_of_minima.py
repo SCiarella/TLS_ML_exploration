@@ -82,9 +82,6 @@ if __name__ == "__main__":
     if not os.path.exists(pairs_dir):
         os.makedirs(pairs_dir, exist_ok=True)
 
-    if not os.path.exists('.temp'):
-        os.makedirs('.temp', exist_ok=True)
-    
     
     # loop over all the temperatures separately
     list_T = glob.glob('Configurations/minima/*')
@@ -158,59 +155,46 @@ if __name__ == "__main__":
                     if DE*1500 > 1:
                         continue
 
-                    # check if either i or j have been already processed
-                    cnf_name = confdir.split('/')[-1].split('_')[0]
-                    ipreprocessed = '.temp/{}_{}.pickle'.format(cnf_name,i)
-                    jpreprocessed = '.temp/{}_{}.pickle'.format(cnf_name,j)
-                    # Check for i
-                    if os.path.isfile(ipreprocessed) and os.stat(ipreprocessed).st_size > 0:
-                        i_df = pd.read_pickle(ipreprocessed)
-                    else:
-                        # If Not I read it from the binary format
-                        ifilename = '{}/{}.conf'.format(confdir,i)
-                        try:
-                            ifile = FortranFile(ifilename, 'r')
-                        except Exception as e:
-                            print('\nError: ')
-                            print(e)
-                            sys.exit(0)
-                        idata = []
-                        # Read N
-                        [Ni]=ifile.read_ints(np.int32)
-                        # Read L
-                        ibox=ifile.read_reals(np.float64)
-                        irxyz = []
-                        for n in range(Ni):
-                            irxyz.append( ifile.read_reals(np.float64) )
-                        i_df = pd.DataFrame(irxyz, columns=['r','x','y','z'])
-                        i_df['N']=Ni
-                        # I am interested in half of L for PBC
-                        i_df['L']=ibox[0]/2
-                        # * Store
-                        i_df.to_pickle(ipreprocessed)
-                        ifile.close()
-                    # Check for j
-                    if os.path.isfile(jpreprocessed) and os.stat(jpreprocessed).st_size > 0:
-                        j_df = pd.read_pickle(jpreprocessed)
-                    else:
-                        jfilename = '{}/{}.conf'.format(confdir,j)
-                        try:
-                            jfile = FortranFile(jfilename, 'r')
-                        except Exception as e:
-                            print('\nError: ')
-                            print(e)
-                            sys.exit(0)
-                        jdata = []
-                        [Nj]=jfile.read_ints(np.int32)
-                        jbox=jfile.read_reals(np.float64)
-                        jrxyz = []
-                        for n in range(Nj):
-                            jrxyz.append( jfile.read_reals(np.float64) )
-                        j_df = pd.DataFrame(jrxyz, columns=['r','x','y','z'])
-                        j_df['N']=Nj
-                        j_df['L']=jbox[0]/2
-                        j_df.to_pickle(jpreprocessed)
-                        jfile.close()
+                    # Process i
+                    ifilename = '{}/{}.conf'.format(confdir,i)
+                    try:
+                        ifile = FortranFile(ifilename, 'r')
+                    except Exception as e:
+                        print('\nError: ')
+                        print(e)
+                        sys.exit(0)
+                    idata = []
+                    # Read N
+                    [Ni]=ifile.read_ints(np.int32)
+                    # Read L
+                    ibox=ifile.read_reals(np.float64)
+                    irxyz = []
+                    for n in range(Ni):
+                        irxyz.append( ifile.read_reals(np.float64) )
+                    i_df = pd.DataFrame(irxyz, columns=['r','x','y','z'])
+                    i_df['N']=Ni
+                    # I am interested in half of L for PBC
+                    i_df['L']=ibox[0]/2
+                    ifile.close()
+
+                    # Process j
+                    jfilename = '{}/{}.conf'.format(confdir,j)
+                    try:
+                        jfile = FortranFile(jfilename, 'r')
+                    except Exception as e:
+                        print('\nError: ')
+                        print(e)
+                        sys.exit(0)
+                    jdata = []
+                    [Nj]=jfile.read_ints(np.int32)
+                    jbox=jfile.read_reals(np.float64)
+                    jrxyz = []
+                    for n in range(Nj):
+                        jrxyz.append( jfile.read_reals(np.float64) )
+                    j_df = pd.DataFrame(jrxyz, columns=['r','x','y','z'])
+                    j_df['N']=Nj
+                    j_df['L']=jbox[0]/2
+                    jfile.close()
 
                 
                     # check that N and L are consistent
@@ -298,8 +282,3 @@ if __name__ == "__main__":
             print('\n*Done\n\n')
             full_df.to_pickle(full_df_name)
 
-            # remove all the tempfiles
-            cnf_name = confdir.split('/')[-1].split('_')[0]
-            temp_list = glob.glob('.temp/{}_*.pickle'.format(cnf_name))
-            for tempfile in temp_list:
-                os.remove(tempfile)
