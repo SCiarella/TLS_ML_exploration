@@ -163,7 +163,7 @@ if __name__ == "__main__":
                     ipreprocessed = '.temp/{}_{}.pickle'.format(cnf_name,i)
                     jpreprocessed = '.temp/{}_{}.pickle'.format(cnf_name,j)
                     # Check for i
-                    if os.path.isfile(ipreprocessed):
+                    if os.path.isfile(ipreprocessed) and os.stat(ipreprocessed).st_size > 0:
                         i_df = pd.read_pickle(ipreprocessed)
                     else:
                         # If Not I read it from the binary format
@@ -190,7 +190,7 @@ if __name__ == "__main__":
                         i_df.to_pickle(ipreprocessed)
                         ifile.close()
                     # Check for j
-                    if os.path.isfile(jpreprocessed):
+                    if os.path.isfile(jpreprocessed) and os.stat(jpreprocessed).st_size > 0:
                         j_df = pd.read_pickle(jpreprocessed)
                     else:
                         jfilename = '{}/{}.conf'.format(confdir,j)
