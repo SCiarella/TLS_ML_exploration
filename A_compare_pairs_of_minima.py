@@ -191,10 +191,9 @@ if __name__ == "__main__":
                     # calculate the total displacement and the PR 
                     single_pair_df['dpow2'] = np.square(single_pair_df['displacement'])
                     single_pair_df['dpow4'] = np.square(single_pair_df['dpow2'])
-                    total_displacement = single_pair_df['displacement'].sum() 
-                    sum_dpow2 = single_pair_df['dpow2'].sum() 
+                    total_displacement = np.sqrt(single_pair_df['dpow2'].sum()) 
                     sum_dpow4 = single_pair_df['dpow4'].sum() 
-                    PR = sum_dpow2*sum_dpow2/sum_dpow4
+                    PR = np.power(total_displacement,4)/sum_dpow4
 
     
                     # To save space I store only the M_to_store particles that displaced the most
