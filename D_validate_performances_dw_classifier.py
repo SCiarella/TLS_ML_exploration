@@ -20,9 +20,12 @@ import myparams
 
 if __name__ == "__main__":
     M = myparams.M
-    save_path='MLmodel/dw-classification-M{}'.format(M)
-    validation_set = pd.read_pickle('MLmodel/dw-classifier-validation-set-M{}.pickle'.format(M))
-    training_set = pd.read_pickle('MLmodel/dw-classifier-training-set-M{}.pickle'.format(M))
+    T = myparams.T
+    Tlabel = str(T).replace('.','')
+    print('\n*** Requested to validate the dw classifier at T={} (M={})'.format(T,M))
+    save_path='MLmodel/dw-classification-M{}-T{}'.format(M,Tlabel)
+    validation_set = pd.read_feather('MLmodel/dw-classifier-validation-set-M{}-T{}.feather'.format(M,Tlabel))
+    training_set = pd.read_feather('MLmodel/dw-classifier-training-set-M{}-T{}.feather'.format(M,Tlabel))
     
     # ********* RESULTS OVER THE TRAINING SET
     label= 'is_dw'

@@ -21,14 +21,17 @@ import myparams
 
 if __name__ == "__main__":
     M = myparams.M
+    T = myparams.T
+    Tlabel = str(T).replace('.','')
+    print('\n*** Requested to train the dw classifier at T={} (M={})'.format(T,M))
     ndecimals=10
     rounding_error=10**(-1*(ndecimals+1))
-    model_path='MLmodel/dw-classification-M{}'.format(M)
+    model_path='MLmodel/dw-classification-M{}-T{}'.format(M,Tlabel)
     
     # *************
     # First I load the data that the classifier has already used for its training 
     try:
-        used_data = pd.read_pickle('MLmodel/data-used-by-dwclassifier-M{}.pickle'.format(M))
+        used_data = pd.read_feather('MLmodel/data-used-by-dwclassifier-M{}-T{}.feather'.format(M,Tlabel))
     except:
         print('First time training the classifier')
         used_data = pd.DataFrame()
@@ -36,30 +39,28 @@ if __name__ == "__main__":
     # Then I check the NEB calculations to see the what new data are available 
     list_neb_nondw=[]
     list_neb_dw=[]
-    list_T = glob.glob('NEB_calculations/*')
-    for Tdir in list_T:
-        T=float(Tdir.split('/T')[-1])
-        with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
-            lines = nondw_file.readlines()
-            for line in lines:
-                conf = line.split()[0]
-                i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
-                list_neb_nondw.append((T,conf,i,j))
-        with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
-            lines = dw_file.readlines()
-            for line in lines:
-                conf = line.split()[0]
-                i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
-                list_neb_dw.append((T,conf,i,j))
+    Tdir='./NEB_calculations/T{}'.format(T)
+    with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
+        lines = nondw_file.readlines()
+        for line in lines:
+            conf = line.split()[0]
+            i,j = line.split()[1].split('_')
+            i = round(float(i),ndecimals)
+            j = round(float(j),ndecimals)
+            list_neb_nondw.append((T,conf,i,j))
+    with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
+        lines = dw_file.readlines()
+        for line in lines:
+            conf = line.split()[0]
+            i,j = line.split()[1].split('_')
+            i = round(float(i),ndecimals)
+            j = round(float(j),ndecimals)
+            list_neb_dw.append((T,conf,i,j))
     print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_neb_nondw),len(list_neb_dw)))
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
     try:
-        pretrain_df = pd.read_pickle('MLmodel/pretraining-dwclassifier-M{}.pickle'.format(M))
+        pretrain_df = pd.read_feather('MLmodel/pretraining-dwclassifier-M{}-T{}.feather'.format(M,Tlabel))
 
         print(pretrain_df.sort_values('Delta_E',ascending=False))
     except:
@@ -80,9 +81,9 @@ if __name__ == "__main__":
     # For these new NEB informations, I look for the corresponding input pair 
     # so I need to load the input features for all of them
     try:
-        all_pairs_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+        all_pairs_df = pd.read_feather('./Configurations/postprocessing/T0062.feather')
     except:
-        print('Error: there are no data prepared, so you have to run B_ first.')
+        print('Error: there are no data prepared')
         sys.exit()
     all_pairs_df['i'] = all_pairs_df['i'].astype(float)
     all_pairs_df['j'] = all_pairs_df['j'].astype(float)
@@ -117,31 +118,38 @@ if __name__ == "__main__":
     #            print('WARNING: we do not have {}'.format(element))
         return worker_df
     
-            
-    # Initialize the pool
-    pool = mp.Pool(mp.cpu_count())
-    # *** RUN THE PARALLEL FUNCTION
-    results = pool.map(process_chunk, [chunk for chunk in chunks] )
-    pool.close()
-    # and add all the new df to the final one
-    non_dw_df=pd.DataFrame()
-    for df_chunk in results:
-        non_dw_df = pd.concat([non_dw_df,df_chunk])
-    non_dw_df['is_dw']=0
-    print('Constructed the database of {} non-dw from the new pairs'.format(len(non_dw_df)))
-    
-    # *** now get the dw using the same function
-    chunks=[list_neb_dw[i:i + elements_per_worker] for i in range(0, len(list_neb_dw), elements_per_worker)]
-    n_chunks = len(chunks)
-    print('We are going to submit {} chunks for the dw \n'.format(n_chunks))
-    pool = mp.Pool(mp.cpu_count())
-    results = pool.map(process_chunk, [chunk for chunk in chunks] )
-    pool.close()
-    dw_df=pd.DataFrame()
-    for df_chunk in results:
-        dw_df = pd.concat([dw_df,df_chunk])
-    dw_df['is_dw']=1
-    print('Constructed the database of {} dw from the new pairs'.format(len(dw_df)))
+
+    useNEBdata =False
+    if useNEBdata:        
+        print('collecting info for NEB pairs')
+        # Initialize the pool
+        pool = mp.Pool(mp.cpu_count())
+        # *** RUN THE PARALLEL FUNCTION
+        results = pool.map(process_chunk, [chunk for chunk in chunks] )
+        pool.close()
+        # and add all the new df to the final one
+        non_dw_df=pd.DataFrame()
+        for df_chunk in results:
+            non_dw_df = pd.concat([non_dw_df,df_chunk])
+        non_dw_df['is_dw']=0
+        print('Constructed the database of {} non-dw from the new pairs'.format(len(non_dw_df)))
+        
+        # *** now get the dw using the same function
+        chunks=[list_neb_dw[i:i + elements_per_worker] for i in range(0, len(list_neb_dw), elements_per_worker)]
+        n_chunks = len(chunks)
+        print('We are going to submit {} chunks for the dw \n'.format(n_chunks))
+        pool = mp.Pool(mp.cpu_count())
+        results = pool.map(process_chunk, [chunk for chunk in chunks] )
+        pool.close()
+        dw_df=pd.DataFrame()
+        for df_chunk in results:
+            dw_df = pd.concat([dw_df,df_chunk])
+        dw_df['is_dw']=1
+        print('Constructed the database of {} dw from the new pairs'.format(len(dw_df)))
+    else:
+        print('Not using NEB data for training')
+        dw_df = pd.DataFrame()
+        non_dw_df = pd.DataFrame()
     
     
     
@@ -152,23 +160,13 @@ if __name__ == "__main__":
         dw_df=dw_df.drop_duplicates()
         non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['is_dw']<1]])
         non_dw_df=non_dw_df.drop_duplicates()
-    
-
-    # Check that the different temperatures are balanced in the data
     qs_df = pd.concat([dw_df,non_dw_df])
-    T_list = qs_df['T'].unique()
-    print('\n')
-    ndata_for_each_T=len(qs_df)
-    for T in T_list:
-        nd=len(qs_df[qs_df['T']==T])
-        print('We have {} data at T={}'.format(nd,T))
-        if nd<ndata_for_each_T:
-            ndata_for_each_T=nd
-    print('so we only keep {} for each different T to mantain a balanced dataset'.format(ndata_for_each_T))
-    balanced_df=pd.DataFrame()
-    for T in T_list:
-        balanced_df=pd.concat([balanced_df, (qs_df[qs_df['T']==T]).sample(n=ndata_for_each_T)])
-    qs_df=balanced_df
+
+    # remove useless column
+    qs_df = qs_df.drop(columns=['T','i2','j2'])
+    dw_df = dw_df.drop(columns=['T','i2','j2'])
+    non_dw_df = non_dw_df.drop(columns=['T','i2','j2'])
+
 
     
     # This is the new training df that will be stored at the end 
@@ -204,6 +202,7 @@ if __name__ == "__main__":
     
     
     print('\nFrom the overall %d data we prepare:\n\t- training set of %d  (half dw and half non-dw) \n\t- validation set of %d  (half dw and half non-dw)\n\n'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
+
     
     
     
@@ -226,6 +225,6 @@ if __name__ == "__main__":
     
     
     # store
-    new_training_df.to_pickle('MLmodel/data-used-by-dwclassifier-M{}.pickle'.format(M))
-    training_set.to_pickle('MLmodel/dw-classifier-training-set-M{}.pickle'.format(M))
-    validation_set.to_pickle('MLmodel/dw-classifier-validation-set-M{}.pickle'.format(M))
+    new_training_df.reset_index().drop(columns='index').to_feather('MLmodel/data-used-by-dwclassifier-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
+    training_set.reset_index().drop(columns='index').to_feather('MLmodel/dw-classifier-training-set-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
+    validation_set.reset_index().drop(columns='index').to_feather('MLmodel/dw-classifier-validation-set-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')

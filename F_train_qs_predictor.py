@@ -21,37 +21,38 @@ import myparams
 
 if __name__ == "__main__":
     M = myparams.M
+    T = myparams.T
+    Tlabel = str(T).replace('.','')
+    print('\n*** Requested to train the qs predictor at T={} (M={})'.format(T,M))
     ndecimals=10
     rounding_error=10**(-1*(ndecimals+1))
-    model_path='MLmodel/qs-regression-M{}'.format(M)
+    model_path='MLmodel/qs-regression-M{}-T{}'.format(M,Tlabel)
     
     # *************
     # First I load the data that the predictor has already used for its training 
     try:
-        used_data = pd.read_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M))
+        used_data = pd.read_feather('MLmodel/data-used-by-qspredictor-M{}.feather'.format(M))
     except:
         print('First time training the classifier')
         used_data = pd.DataFrame()
     
     # Then I check the NEB calculations to see the what new data are available 
     list_neb_qs=[]
-    list_T = glob.glob('NEB_calculations/*')
-    for Tdir in list_T:
-        T=float(Tdir.split('/T')[-1])
-        with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
-            lines = qs_file.readlines()
-            for line in lines:
-                conf = line.split()[0]
-                i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
-                qs = line.split()[2]
-                list_neb_qs.append((T,conf,i,j,qs))
+    Tdir='./NEB_calculations/T{}'.format(T)
+    with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
+        lines = qs_file.readlines()
+        for line in lines:
+            conf = line.split()[0]
+            i,j = line.split()[1].split('_')
+            i = round(float(i),ndecimals)
+            j = round(float(j),ndecimals)
+            qs = line.split()[2]
+            list_neb_qs.append((T,conf,i,j,qs))
     print('From the NEB results we have {} pairs for which we know the qs'.format(len(list_neb_qs)))
     
     
     # then load the info about all the pairs
-    pairs_df = pd.read_pickle('MLmodel/input_features_all_pairs_M{}.pickle'.format(M))
+    pairs_df = pd.read_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel))
     # and format in the correct way
     pairs_df['i'] = pairs_df['i'].astype(float)
     pairs_df['j'] = pairs_df['j'].astype(float)
@@ -60,7 +61,7 @@ if __name__ == "__main__":
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
     try:
-        pretrain_df = pd.read_pickle('MLmodel/pretraining-qs-regression-M{}.pickle'.format(M))
+        pretrain_df = pd.read_feather('MLmodel/pretraining-qspredictor-M{}-T{}.feather'.format(M,Tlabel))
     except:
         print('\nNotice that no pretraining is available')
         pretrain_df = pd.DataFrame()
@@ -101,17 +102,23 @@ if __name__ == "__main__":
            #     sys.exit()
         return worker_df
             
-    # Initialize the pool
-    pool = mp.Pool(mp.cpu_count())
-    # *** RUN THE PARALLEL FUNCTION
-    results = pool.map(process_chunk, [chunk for chunk in chunks] )
-    pool.close()
-    # and add all the new df to the final one
-    qs_df=pd.DataFrame()
-    missed_dw=0
-    for df_chunk in results:
-        qs_df= pd.concat([qs_df,df_chunk])
-    print('From the NEB calculations I constructed a database of {} pairs for which I have the input informations.'.format(len(qs_df)))
+    useNEBdata =False
+    if useNEBdata:
+        print('collecting info for NEB pairs')
+        # Initialize the pool
+        pool = mp.Pool(mp.cpu_count())
+        # *** RUN THE PARALLEL FUNCTION
+        results = pool.map(process_chunk, [chunk for chunk in chunks] )
+        pool.close()
+        # and add all the new df to the final one
+        qs_df=pd.DataFrame()
+        missed_dw=0
+        for df_chunk in results:
+            qs_df= pd.concat([qs_df,df_chunk])
+        print('From the NEB calculations I constructed a database of {} pairs for which I have the input informations.'.format(len(qs_df)))
+    else:
+        print('Not using NEB data for training')
+        qs_df = pd.DataFrame()
     
     
     # *******
@@ -121,22 +128,9 @@ if __name__ == "__main__":
         qs_df = qs_df.drop_duplicates()
         qs_df = qs_df.reset_index(drop=True)
 
-
-    # Check that the different temperatures are balanced in the data
-    T_list = qs_df['T'].unique()
-    print('\n')
-    ndata_for_each_T=len(qs_df)
-    for T in T_list:
-        nd=len(qs_df[qs_df['T']==T])
-        print('We have {} data at T={}'.format(nd,T))
-        if nd<ndata_for_each_T:
-            ndata_for_each_T=nd
-    print('so we only keep {} for each different T to mantain a balanced dataset'.format(ndata_for_each_T))
-    balanced_df=pd.DataFrame()
-    for T in T_list:
-        balanced_df=pd.concat([balanced_df, (qs_df[qs_df['T']==T]).sample(n=ndata_for_each_T)])
-    qs_df=balanced_df
-
+    # remove useless column
+    qs_df = qs_df.drop(columns=['T','i2','j2'])
+    print(qs_df)
 
     
     # This is the new training df that will be stored at the end 
@@ -197,6 +191,6 @@ if __name__ == "__main__":
     
     
     # store
-    new_training_df.to_pickle('MLmodel/data-used-by-qspredictor-M{}.pickle'.format(M))
-    training_set.to_pickle('MLmodel/qs-prediction-training-set-M{}.pickle'.format(M))
-    validation_set.to_pickle('MLmodel/qs-prediction-validation-set-M{}.pickle'.format(M))
+    new_training_df.reset_index().to_feather('MLmodel/data-used-by-qspredictor-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
+    training_set.reset_index().to_feather('MLmodel/qs-prediction-training-set-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
+    validation_set.reset_index().to_feather('MLmodel/qs-prediction-validation-set-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
