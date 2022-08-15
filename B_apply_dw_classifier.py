@@ -91,9 +91,8 @@ if __name__ == "__main__":
     new_df.to_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
 
     # remove the useless columns
-    new_df=new_df.drop(columns=['i2','j2','T','conf','i','j'])
+    new_df=new_df.drop(columns=['i2','j2','T'])
 
-    
     
     # *************
     # (3) apply the dw Filter 
@@ -110,7 +109,7 @@ if __name__ == "__main__":
     dwclassifier = TabularPredictor.load(classifier_save_path) 
     
     print('\n* Classifier starts',flush=True)
-    new_df['is_dw'] = dwclassifier.predict(new_df)
+    new_df['is_dw'] = dwclassifier.predict(new_df.drop(columns=['conf','i','j']))
     timeclass=time.time() -start
 
     print(new_df)
