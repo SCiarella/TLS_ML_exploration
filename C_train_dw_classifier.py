@@ -90,9 +90,6 @@ if __name__ == "__main__":
     except:
         print('Error: there are no data prepared')
         sys.exit()
-    all_pairs_df['i'] = all_pairs_df['i'].astype(float)
-    all_pairs_df['j'] = all_pairs_df['j'].astype(float)
-    all_pairs_df['T'] = all_pairs_df['T'].astype(float)
     all_pairs_df.i = all_pairs_df.i.round(ndecimals)
     all_pairs_df.j = all_pairs_df.j.round(ndecimals)
     
@@ -183,10 +180,6 @@ if __name__ == "__main__":
         else:
             print('but the model is not in {}, so I train anyway'.format(model_path),flush=True)
     
-    # convert to float
-    new_training_df['Delta_E'] = new_training_df['Delta_E'].astype(float)
-    for mi in range(int(M)):
-        new_training_df['displacement_{}'.format(mi)] = new_training_df['displacement_{}'.format(mi)].astype(float)
     
     # Create a balanced subset with same number of dw and non-dw
     N = min(len(dw_df),len(non_dw_df))
@@ -224,8 +217,7 @@ if __name__ == "__main__":
     
     # train
     # * I am excluding KNN because it is problematic
-    # * Convert to float to have optimal performances!
-    predictor = TabularPredictor(label='is_dw', path=model_path, eval_metric='accuracy').fit(TabularDataset(training_set.drop(columns=['i','j','conf'])).astype(float), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
+    predictor = TabularPredictor(label='is_dw', path=model_path, eval_metric='accuracy').fit(TabularDataset(training_set.drop(columns=['i','j','conf'])), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
     
     
     # store

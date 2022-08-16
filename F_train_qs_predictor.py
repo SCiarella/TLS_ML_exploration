@@ -54,8 +54,6 @@ if __name__ == "__main__":
     # then load the info about all the pairs
     pairs_df = pd.read_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel))
     # and format in the correct way
-    pairs_df['i'] = pairs_df['i'].astype(float)
-    pairs_df['j'] = pairs_df['j'].astype(float)
     pairs_df = pairs_df.round(decimals=10)
     
     
@@ -144,12 +142,6 @@ if __name__ == "__main__":
             print('but the model is not in {}, so I train anyway'.format(model_path),flush=True)
     
     
-    # convert to float
-    new_training_df['Delta_E'] = new_training_df['Delta_E'].astype(float)
-    new_training_df['quantum_splitting'] = new_training_df['quantum_splitting'].astype(float)
-    for mi in range(int(M)):
-        new_training_df['displacement_{}'.format(mi)] = new_training_df['displacement_{}'.format(mi)].astype(float)
-    
 
     # ************
     # *** I do (-1) log of the data such that the values are closer and their weight is more balanced in the fitness
@@ -187,7 +179,7 @@ if __name__ == "__main__":
     # train
     # * I am excluding KNN because it is problematic
     # * Convert to float to have optimal performances!
-    predictor = TabularPredictor(label='10tominusquantum_splitting', path=model_path, eval_metric='mean_squared_error', sample_weight='weights' , weight_evaluation=True).fit(TabularDataset(training_set.drop(columns=['i','j','conf','quantum_splitting'])).astype(float), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
+    predictor = TabularPredictor(label='10tominusquantum_splitting', path=model_path, eval_metric='mean_squared_error', sample_weight='weights' , weight_evaluation=True).fit(TabularDataset(training_set.drop(columns=['i','j','conf','quantum_splitting'])), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
     
     
     # store

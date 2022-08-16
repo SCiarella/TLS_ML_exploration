@@ -46,7 +46,7 @@ print('\n***Reading the data at T={}\nWe found {} glasses and a total of {} pair
 
 # predict the qs
 X = dw_df.drop(columns=['i','j','conf','is_dw'])
-X = TabularDataset(X).astype(float)
+X = TabularDataset(X)
 y_pred_by_AI = predictor.predict(dw_df)
 y_pred_by_AI = np.power(10, -y_pred_by_AI)
 print('The qs has been predicted. Now storing results')

@@ -32,7 +32,7 @@ if __name__ == "__main__":
     training_set = training_set.sort_values(label,ascending=False)
     training_set_nolab = training_set.drop(columns=['i','j','conf',label])
     # * Convert to float to have optimal performances!
-    training_set_nolab = TabularDataset(training_set_nolab).astype(float)
+    training_set_nolab = TabularDataset(training_set_nolab)
     y_true_val = training_set[label]  # values to predict
     
     
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     # * Convert to float to have optimal performances!
     validation_set= validation_set.sort_values(label,ascending=False)
     validation_set_nolab = validation_set.drop(columns=['i','j','conf',label])
-    validation_set_nolab = TabularDataset(validation_set_nolab).astype(float)
+    validation_set_nolab = TabularDataset(validation_set_nolab)
     y_true_val = validation_set[label]  # values to predict
     
     # predict

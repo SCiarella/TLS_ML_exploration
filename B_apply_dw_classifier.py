@@ -37,21 +37,14 @@ if __name__ == "__main__":
     # *************
     # (1) Load the preprocessed data 
     new_df=pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
+    print(new_df)
+    print(new_df.dtypes)
     
     # load the df containing all the pairs that I found last time
     try:
         old_df = pd.read_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel))
     except:
         print('First time running this code. Have you already trained the classifier using C_* ? If yes you can re-execute this')
-        new_df['i'] = new_df['i'].astype(float)
-        new_df['j'] = new_df['j'].astype(float)
-        new_df['T'] = new_df['T'].astype(float)
-        new_df['Delta_E'] = new_df['Delta_E'].astype(float)
-        new_df['PR'] = new_df['PR'].astype(float)
-        new_df['total_displacement'] = new_df['total_displacement'].astype(float)
-        new_df['conf'] = new_df['conf'].astype(str)
-        for mi in range(int(M)):
-            new_df['displacement_{}'.format(mi)] = new_df['displacement_{}'.format(mi)].astype(float) 
         new_df.to_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
         sys.exit()
     
@@ -59,25 +52,6 @@ if __name__ == "__main__":
         print('\n***Error: input_features* has lenght {} while I find only {} pairs. This is only possible if you have lost data!'.format(len(old_df),len(new_df)) )
         sys.exit()
     
-    # Convert the data to the correct types
-    print('\nConverting data types')
-    new_df['i'] = new_df['i'].astype(float)
-    new_df['j'] = new_df['j'].astype(float)
-    new_df['T'] = new_df['T'].astype(float)
-    new_df['Delta_E'] = new_df['Delta_E'].astype(float)
-    new_df['PR'] = new_df['PR'].astype(float)
-    new_df['total_displacement'] = new_df['total_displacement'].astype(float)
-    new_df['conf'] = new_df['conf'].astype(str)
-    old_df['i'] = old_df['i'].astype(float)
-    old_df['j'] = old_df['j'].astype(float)
-    old_df['T'] = old_df['T'].astype(float)
-    old_df['conf'] = old_df['conf'].astype(str)
-    old_df['PR'] = old_df['PR'].astype(float)
-    old_df['total_displacement'] = old_df['total_displacement'].astype(float)
-    old_df['Delta_E'] = old_df['Delta_E'].astype(float)
-    for mi in range(int(M)):
-        new_df['displacement_{}'.format(mi)] = new_df['displacement_{}'.format(mi)].astype(float) 
-        old_df['displacement_{}'.format(mi)] = old_df['displacement_{}'.format(mi)].astype(float) 
     
     # check which data are shared and which one are new
     print('\nCross-check and merging')

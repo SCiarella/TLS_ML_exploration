@@ -38,7 +38,7 @@ if __name__ == "__main__":
     print('(Excluding from the plot pairs with qs>{})'.format(qsMAX))
     training_set=training_set[training_set['quantum_splitting']<qsMAX]
     # * Convert to float to have optimal performances!
-    training_set_nolab = TabularDataset(training_set.drop(columns=['i','j','conf','quantum_splitting','10tominusquantum_splitting'])).astype(float)
+    training_set_nolab = TabularDataset(training_set.drop(columns=['i','j','conf','quantum_splitting','10tominusquantum_splitting']))
     y_true_val = np.power(10, -training_set['10tominusquantum_splitting'])  # values to predict
     
     
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # * Convert to float to have optimal performances!
     validation_set= validation_set.sort_values('quantum_splitting',ascending=False)
     validation_set_nolab = validation_set.drop(columns=['i','j','conf','quantum_splitting','10tominusquantum_splitting'])
-    validation_set_nolab = TabularDataset(validation_set_nolab).astype(float)
+    validation_set_nolab = TabularDataset(validation_set_nolab)
     y_true_val = np.power(10, -validation_set['10tominusquantum_splitting'])  # values to predict
     
     # predict
@@ -180,7 +180,6 @@ if __name__ == "__main__":
     y = []
     tls = 0
     neb = 0
-    qs_df['quantum_splitting']= qs_df['quantum_splitting'].astype(float)
     print('Iterating to find TLS')
     for index, row in qs_df.iterrows():
         neb +=1
