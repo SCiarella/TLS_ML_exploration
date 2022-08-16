@@ -22,6 +22,7 @@ import myparams
 if __name__ == "__main__":
     M = myparams.M
     T = myparams.T
+    useNEBdata = True
     Tlabel = str(T).replace('.','')
     print('\n*** Requested to train the dw classifier at T={} (M={})'.format(T,M))
     ndecimals=10
@@ -40,23 +41,27 @@ if __name__ == "__main__":
     list_neb_nondw=[]
     list_neb_dw=[]
     Tdir='./NEB_calculations/T{}'.format(T)
-    with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
-        lines = nondw_file.readlines()
-        for line in lines:
-            conf = line.split()[0]
-            i,j = line.split()[1].split('_')
-            i = round(float(i),ndecimals)
-            j = round(float(j),ndecimals)
-            list_neb_nondw.append((T,conf,i,j))
-    with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
-        lines = dw_file.readlines()
-        for line in lines:
-            conf = line.split()[0]
-            i,j = line.split()[1].split('_')
-            i = round(float(i),ndecimals)
-            j = round(float(j),ndecimals)
-            list_neb_dw.append((T,conf,i,j))
-    print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_neb_nondw),len(list_neb_dw)))
+    if not os.path.isfile('{}/NON-DW.txt'.format(Tdir)):
+        print('\n*(!)* Notice that there are no NEB data\n')
+        useNEBdata = False
+    else:
+        with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
+            lines = nondw_file.readlines()
+            for line in lines:
+                conf = line.split()[0]
+                i,j = line.split()[1].split('_')
+                i = round(float(i),ndecimals)
+                j = round(float(j),ndecimals)
+                list_neb_nondw.append((T,conf,i,j))
+        with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
+            lines = dw_file.readlines()
+            for line in lines:
+                conf = line.split()[0]
+                i,j = line.split()[1].split('_')
+                i = round(float(i),ndecimals)
+                j = round(float(j),ndecimals)
+                list_neb_dw.append((T,conf,i,j))
+        print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_neb_nondw),len(list_neb_dw)))
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
     try:
@@ -81,7 +86,7 @@ if __name__ == "__main__":
     # For these new NEB informations, I look for the corresponding input pair 
     # so I need to load the input features for all of them
     try:
-        all_pairs_df = pd.read_feather('./Configurations/postprocessing/T0062.feather')
+        all_pairs_df = pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
     except:
         print('Error: there are no data prepared')
         sys.exit()
@@ -92,35 +97,34 @@ if __name__ == "__main__":
     all_pairs_df.j = all_pairs_df.j.round(ndecimals)
     
     
-    # split this task between parallel workers
-    elements_per_worker=20
-    chunks=[list_neb_nondw[i:i + elements_per_worker] for i in range(0, len(list_neb_nondw), elements_per_worker)]
-    n_chunks = len(chunks)
-    print('We are going to submit {} chunks for the non dw \n'.format(n_chunks))
-    
-    
-    def process_chunk(chunk):
-        worker_df=pd.DataFrame()
-        # I search for the given configuration
-        for element in chunk:
-            T,conf,i,j = element
-            # do we have it ?
-            a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
-            if len(a)>1:
-                print('Error! multiple correspondences for {}'.format(element))
-                with pd.option_context('display.float_format', '{:0.20f}'.format):
-                    print(a)
-                    print(a[['i','j']])
-                sys.exit()
-            elif len(a)==1:
-                worker_df = pd.concat([worker_df,a])
-    #        else:
-    #            print('WARNING: we do not have {}'.format(element))
-        return worker_df
-    
-
-    useNEBdata =False
     if useNEBdata:        
+
+        # split this task between parallel workers
+        elements_per_worker=20
+        chunks=[list_neb_nondw[i:i + elements_per_worker] for i in range(0, len(list_neb_nondw), elements_per_worker)]
+        n_chunks = len(chunks)
+        print('We are going to submit {} chunks for the non dw \n'.format(n_chunks))
+        
+        
+        def process_chunk(chunk):
+            worker_df=pd.DataFrame()
+            # I search for the given configuration
+            for element in chunk:
+                T,conf,i,j = element
+                # do we have it ?
+                a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
+                if len(a)>1:
+                    print('Error! multiple correspondences for {}'.format(element))
+                    with pd.option_context('display.float_format', '{:0.20f}'.format):
+                        print(a)
+                        print(a[['i','j']])
+                    sys.exit()
+                elif len(a)==1:
+                    worker_df = pd.concat([worker_df,a])
+        #        else:
+        #            print('WARNING: we do not have {}'.format(element))
+            return worker_df
+    
         print('collecting info for NEB pairs')
         # Initialize the pool
         pool = mp.Pool(mp.cpu_count())
