@@ -72,7 +72,7 @@ if __name__ == "__main__":
     cb.set_label('counts')
     plt.legend()
     plt.tight_layout()
-    plt.savefig('output_ML/qs-true_vs_AI_trainingset.png',dpi=150)
+    plt.savefig('output_ML/T{}/qs-true_vs_AI_trainingset.png'.format(T),dpi=150)
     plt.close()
     
     
@@ -111,133 +111,137 @@ if __name__ == "__main__":
     cb.set_label('counts')
     plt.legend()
     plt.tight_layout()
-    plt.savefig('output_ML/qs-true_vs_AI_testset.png',dpi=150)
+    plt.savefig('output_ML/T{}/qs-true_vs_AI_testset.png'.format(T),dpi=150)
     plt.close()
     
-    
-    # Plot the efficiency by measuring how many of the NEB that we actually run were tls
-    # then load the info about all the pairs
-    pairs_df = pd.read_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel))
-    
-    def process_chunk(chunk):
-        worker_df=pd.DataFrame()
-        # I search for the given configuration
-        for element in chunk:
-            T,conf,i,j,qs = element
-            a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))]
-            if len(a)>1:
-                print('Error! multiple correspondences in dw')
-                sys.exit()
-            elif len(a)==1:
-                b = a.copy()
-                b['quantum_splitting']=qs
-                worker_df = pd.concat([worker_df,b])
-    #        else:
-    #            print('Error: we do not have {}'.format(element))
-    #            sys.exit()
-        return worker_df
-    
-    print('\n\n\n')
-    Tdir='./NEB_calculations/T{}'.format(T)
-    print('\nCalculating efficiency at T={}'.format(T))
-    list_neb_qs=[]
-    with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
-        lines = qs_file.readlines()
-        for line in lines:
-            conf = line.split()[0]
-            i,j = line.split()[1].split('_')
-            i = round(float(i),ndecimals)
-            j = round(float(j),ndecimals)
-            qs = line.split()[2]
-            list_neb_qs.append((T,conf,i,j,qs))
-    
-    # split this task between parallel workers
-    elements_per_worker=10
-    chunks=[list_neb_qs[i:i + elements_per_worker] for i in range(0, len(list_neb_qs), elements_per_worker)]
-    n_chunks = len(chunks)
-    print('We are going to submit {} chunks to get the data\n'.format(n_chunks))
-    
-    # Initialize the pool
-    pool = mp.Pool(mp.cpu_count())
-    # *** RUN THE PARALLEL FUNCTION
-    results = pool.map(process_chunk, [chunk for chunk in chunks] )
-    pool.close()
-    # and add all the new df to the final one
-    qs_df=pd.DataFrame()
-    missed_dw=0
-    for df_chunk in results:
-        qs_df= pd.concat([qs_df,df_chunk])
-    if len(qs_df)<1:
-        print('Error: for none of our available data we have NEB calculation, so it is not possible to validate our model prediction.')
+
+    if not os.path.isfile('NEB_calculations/T{}/Qs_calculations.txt'.format(T)):
+        print('\n* There are no NEBs qs so I can not make additional plots\n')
         sys.exit()
-    print('Constructed the database of {} pairs.\nPredicting'.format(len(qs_df)))
-    
-    y_pred_by_AI = predictor.predict(qs_df.drop(columns='quantum_splitting'))
-    qs_df['quantum_splitting_PREDICTED'] = np.power(10, -y_pred_by_AI)
-    qs_df=qs_df.sort_values(by='quantum_splitting_PREDICTED',ascending=True)
-    
-    x = []
-    y = []
-    tls = 0
-    neb = 0
-    print('Iterating to find TLS')
-    for index, row in qs_df.iterrows():
-        neb +=1
-        if float(row['quantum_splitting'])<thresh_tls:
-            tls +=1
-        x.append(neb)
-        y.append(tls)
-    
-    fig, axs = plt.subplots()
-    axs.plot(x,y)
-    axs.set_ylabel('# TLS', size=15)
-    axs.set_xlabel('# NEBs', size=15)
-    plt.xscale('log') 
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig('output_ML/T{}/TLS-search-efficiency.png'.format(T),dpi=150)
-    plt.close()
-    
-    true=len(qs_df[(qs_df['quantum_splitting']<thresh_tls)&(qs_df['quantum_splitting_PREDICTED']<thresh_tls)])
-    false_pos=len(qs_df[(qs_df['quantum_splitting']>=thresh_tls)&(qs_df['quantum_splitting_PREDICTED']<thresh_tls)])
-    false_neg=len(qs_df[(qs_df['quantum_splitting']<thresh_tls)&(qs_df['quantum_splitting_PREDICTED']>=thresh_tls)])
-    false=len(qs_df[(qs_df['quantum_splitting']>=thresh_tls)&(qs_df['quantum_splitting_PREDICTED']>=thresh_tls)])
-    
-    # Plot with confusion matrix
-    qs_df = qs_df[(qs_df['quantum_splitting']<1) & (qs_df['quantum_splitting_PREDICTED']<1)]
-    fig, axs = plt.subplots()
-    x = qs_df['quantum_splitting']
-    y = qs_df['quantum_splitting_PREDICTED']
-    #
-    axs.plot([min(x),max(x)], [min(x),max(x)],'k', alpha=1, lw=0.4)
-    hb = axs.hexbin(x,y,cmap='summer',mincnt=1,gridsize=75, xscale='log', yscale='log', norm=matplotlib.colors.LogNorm())
-    axs.set_ylabel('quantum splitting (AI)', size=15)
-    axs.set_xlabel('quantum splitting (True)', size=15)
-    ymin,ymax=axs.get_ylim()
-    xmin,xmax=axs.get_xlim()
-    tls_df=qs_df[qs_df['quantum_splitting']<thresh_tls]
-    ntls=len(tls_df)
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
-    for y_tls_dens_counter in [thresh_tls, 2*thresh_tls, 5*thresh_tls]:
-        print('Running nebs for qs_predicted<{}, we get {}/{} of the TLS'.format(y_tls_dens_counter,len(tls_df[tls_df['quantum_splitting_PREDICTED']<y_tls_dens_counter]),ntls)) 
-        dens_tls = round(float(len(tls_df[tls_df['quantum_splitting_PREDICTED']<y_tls_dens_counter])/ntls)*100,2) 
-        nnebs = len(qs_df[qs_df['quantum_splitting_PREDICTED']<y_tls_dens_counter])
-        axs.plot([xmin,xmax], [y_tls_dens_counter,y_tls_dens_counter],'k--', label='_nolegend_', alpha=1, lw=1, zorder=10)
-        plt.text(xmax, y_tls_dens_counter, r'$\downarrow$ {}% of TLS, from {} NEB'.format(dens_tls,nnebs), fontsize=6, color='black', va='center', ha='right',zorder=100,bbox=props)
-    axs.fill_between([xmin,thresh_tls], [thresh_tls,thresh_tls], facecolor='palegreen', label='True [n={}]'.format(true),zorder=-100, interpolate=True)
-    axs.fill_between([xmin,thresh_tls], [ymax,ymax], [thresh_tls,thresh_tls], facecolor='paleturquoise', label='False negative [n={}]'.format(false_neg),zorder=-100, interpolate=True)
-    axs.fill_between([thresh_tls,xmax], [thresh_tls,thresh_tls], facecolor='palegoldenrod', label='False positive [n={}]'.format(false_pos),zorder=-100, interpolate=True)
-    axs.fill_between([thresh_tls,xmax], [ymax,ymax], [thresh_tls,thresh_tls], facecolor='lightcoral', label='Negative [n={}]'.format(false),zorder=-100, interpolate=True)
-    plt.yscale('log') 
-    plt.xscale('log') 
-    axs.legend()
-    cb = fig.colorbar(hb, ax=axs)
-    cb.set_label('counts')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig('output_ML/T{}/confusion-matrix.png'.format(T),dpi=150)
-    plt.close()
-    
-    qs_df.reset_index().to_feather('output_ML/T{}/neb_qs_df.feather'.format(T), compression='zstd')
-    
+    else:
+        # Plot the efficiency by measuring how many of the NEB that we actually run were tls
+        # then load the info about all the pairs
+        pairs_df = pd.read_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel))
         
+        def process_chunk(chunk):
+            worker_df=pd.DataFrame()
+            # I search for the given configuration
+            for element in chunk:
+                T,conf,i,j,qs = element
+                a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))]
+                if len(a)>1:
+                    print('Error! multiple correspondences in dw')
+                    sys.exit()
+                elif len(a)==1:
+                    b = a.copy()
+                    b['quantum_splitting']=qs
+                    worker_df = pd.concat([worker_df,b])
+        #        else:
+        #            print('Error: we do not have {}'.format(element))
+        #            sys.exit()
+            return worker_df
+        
+        print('\n\n\n')
+        Tdir='./NEB_calculations/T{}'.format(T)
+        print('\nCalculating efficiency at T={}'.format(T))
+        list_neb_qs=[]
+        with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
+            lines = qs_file.readlines()
+            for line in lines:
+                conf = line.split()[0]
+                i,j = line.split()[1].split('_')
+                i = round(float(i),ndecimals)
+                j = round(float(j),ndecimals)
+                qs = line.split()[2]
+                list_neb_qs.append((T,conf,i,j,qs))
+        
+        # split this task between parallel workers
+        elements_per_worker=10
+        chunks=[list_neb_qs[i:i + elements_per_worker] for i in range(0, len(list_neb_qs), elements_per_worker)]
+        n_chunks = len(chunks)
+        print('We are going to submit {} chunks to get the data\n'.format(n_chunks))
+        
+        # Initialize the pool
+        pool = mp.Pool(mp.cpu_count())
+        # *** RUN THE PARALLEL FUNCTION
+        results = pool.map(process_chunk, [chunk for chunk in chunks] )
+        pool.close()
+        # and add all the new df to the final one
+        qs_df=pd.DataFrame()
+        missed_dw=0
+        for df_chunk in results:
+            qs_df= pd.concat([qs_df,df_chunk])
+        if len(qs_df)<1:
+            print('Error: for none of our available data we have NEB calculation, so it is not possible to validate our model prediction.')
+            sys.exit()
+        print('Constructed the database of {} pairs.\nPredicting'.format(len(qs_df)))
+        
+        y_pred_by_AI = predictor.predict(qs_df.drop(columns='quantum_splitting'))
+        qs_df['quantum_splitting_PREDICTED'] = np.power(10, -y_pred_by_AI)
+        qs_df=qs_df.sort_values(by='quantum_splitting_PREDICTED',ascending=True)
+        
+        x = []
+        y = []
+        tls = 0
+        neb = 0
+        print('Iterating to find TLS')
+        for index, row in qs_df.iterrows():
+            neb +=1
+            if float(row['quantum_splitting'])<thresh_tls:
+                tls +=1
+            x.append(neb)
+            y.append(tls)
+        
+        fig, axs = plt.subplots()
+        axs.plot(x,y)
+        axs.set_ylabel('# TLS', size=15)
+        axs.set_xlabel('# NEBs', size=15)
+        plt.xscale('log') 
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig('output_ML/T{}/TLS-search-efficiency.png'.format(T),dpi=150)
+        plt.close()
+        
+        true=len(qs_df[(qs_df['quantum_splitting']<thresh_tls)&(qs_df['quantum_splitting_PREDICTED']<thresh_tls)])
+        false_pos=len(qs_df[(qs_df['quantum_splitting']>=thresh_tls)&(qs_df['quantum_splitting_PREDICTED']<thresh_tls)])
+        false_neg=len(qs_df[(qs_df['quantum_splitting']<thresh_tls)&(qs_df['quantum_splitting_PREDICTED']>=thresh_tls)])
+        false=len(qs_df[(qs_df['quantum_splitting']>=thresh_tls)&(qs_df['quantum_splitting_PREDICTED']>=thresh_tls)])
+        
+        # Plot with confusion matrix
+        qs_df = qs_df[(qs_df['quantum_splitting']<1) & (qs_df['quantum_splitting_PREDICTED']<1)]
+        fig, axs = plt.subplots()
+        x = qs_df['quantum_splitting']
+        y = qs_df['quantum_splitting_PREDICTED']
+        #
+        axs.plot([min(x),max(x)], [min(x),max(x)],'k', alpha=1, lw=0.4)
+        hb = axs.hexbin(x,y,cmap='summer',mincnt=1,gridsize=75, xscale='log', yscale='log', norm=matplotlib.colors.LogNorm())
+        axs.set_ylabel('quantum splitting (AI)', size=15)
+        axs.set_xlabel('quantum splitting (True)', size=15)
+        ymin,ymax=axs.get_ylim()
+        xmin,xmax=axs.get_xlim()
+        tls_df=qs_df[qs_df['quantum_splitting']<thresh_tls]
+        ntls=len(tls_df)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+        for y_tls_dens_counter in [thresh_tls, 2*thresh_tls, 5*thresh_tls]:
+            print('Running nebs for qs_predicted<{}, we get {}/{} of the TLS'.format(y_tls_dens_counter,len(tls_df[tls_df['quantum_splitting_PREDICTED']<y_tls_dens_counter]),ntls)) 
+            dens_tls = round(float(len(tls_df[tls_df['quantum_splitting_PREDICTED']<y_tls_dens_counter])/ntls)*100,2) 
+            nnebs = len(qs_df[qs_df['quantum_splitting_PREDICTED']<y_tls_dens_counter])
+            axs.plot([xmin,xmax], [y_tls_dens_counter,y_tls_dens_counter],'k--', label='_nolegend_', alpha=1, lw=1, zorder=10)
+            plt.text(xmax, y_tls_dens_counter, r'$\downarrow$ {}% of TLS, from {} NEB'.format(dens_tls,nnebs), fontsize=6, color='black', va='center', ha='right',zorder=100,bbox=props)
+        axs.fill_between([xmin,thresh_tls], [thresh_tls,thresh_tls], facecolor='palegreen', label='True [n={}]'.format(true),zorder=-100, interpolate=True)
+        axs.fill_between([xmin,thresh_tls], [ymax,ymax], [thresh_tls,thresh_tls], facecolor='paleturquoise', label='False negative [n={}]'.format(false_neg),zorder=-100, interpolate=True)
+        axs.fill_between([thresh_tls,xmax], [thresh_tls,thresh_tls], facecolor='palegoldenrod', label='False positive [n={}]'.format(false_pos),zorder=-100, interpolate=True)
+        axs.fill_between([thresh_tls,xmax], [ymax,ymax], [thresh_tls,thresh_tls], facecolor='lightcoral', label='Negative [n={}]'.format(false),zorder=-100, interpolate=True)
+        plt.yscale('log') 
+        plt.xscale('log') 
+        axs.legend()
+        cb = fig.colorbar(hb, ax=axs)
+        cb.set_label('counts')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig('output_ML/T{}/confusion-matrix.png'.format(T),dpi=150)
+        plt.close()
+        
+        qs_df.reset_index().to_feather('output_ML/T{}/neb_qs_df.feather'.format(T), compression='zstd')
+        
+            

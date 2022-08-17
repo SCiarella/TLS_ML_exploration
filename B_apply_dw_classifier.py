@@ -37,8 +37,6 @@ if __name__ == "__main__":
     # *************
     # (1) Load the preprocessed data 
     new_df=pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
-    print(new_df)
-    print(new_df.dtypes)
     
     # load the df containing all the pairs that I found last time
     try:
@@ -53,19 +51,19 @@ if __name__ == "__main__":
         sys.exit()
     
     
-    # check which data are shared and which one are new
-    print('\nCross-check and merging')
-    #used_df = pd.merge(old_df, new_df) 
-    used_df = dd.merge(old_df, new_df) 
-    Nnew=len(new_df)-len(used_df)
-    
-    print('\n\t@@@@ Overall we have {} pairs, of which {} are new from the last time you run this'.format(len(new_df),Nnew))
+    print('\n\t@@@@ Overall we have {} pairs, while the last time you run this we had {}'.format(len(new_df),len(old_df)))
+
     
     # * Then I store this df to avoid having to redo it 
     new_df.to_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
 
     # remove the useless columns
     new_df=new_df.drop(columns=['i2','j2','T'])
+
+    # *************
+    # (2) remove pairs with a Delta_E which is too large
+    print(new_df.sort_values(by='Delta_E'))
+    sys.exit()
 
     
     # *************
@@ -82,18 +80,33 @@ if __name__ == "__main__":
     print('\n* Classifier loading',flush=True)
     dwclassifier = TabularPredictor.load(classifier_save_path) 
     
-    print('\n* Classifier starts',flush=True)
-    new_df['is_dw'] = dwclassifier.predict(new_df.drop(columns=['conf','i','j']))
-    timeclass=time.time() -start
+    npairs = len(new_df)
+    chunk_size=1e6
+    nchunks = int(npairs/chunk_size)+1
+    processed_chunks = []
+    print('Splitting the data ({} pairs) in {} parts'.format(npairs,nchunks))
+    df_chunks = np.array_split(new_df, nchunks)
+    del new_df
 
-    print(new_df)
+    filtered_chunks = []
+    for chunk_id, chunk in enumerate(df_chunks):
+        print('\n* Classifying part {}/{}'.format(chunk_id+1,nchunks),flush=True)
+        df_chunks[chunk_id]['is_dw'] = dwclassifier.predict(chunk.drop(columns=['conf','i','j']))
+        # I only keep the predicted dw
+        #df_chunks[chunk_id] = df_chunks[chunk_id][df_chunks[chunk_id]['is_dw']>0]
+        filtered_chunks.append(df_chunks[chunk_id][df_chunks[chunk_id]['is_dw']>0])
+        del df_chunks[chunk_id] 
+        print('done in {} sec'.format(time.time() -start))
+    timeclass=time.time()-start
+
+    print('\n - Merging results')
+    filtered_dw = pd.DataFrame()
+    filtered_dw = dd.concat(filtered_chunks)
+    filtered_dw = pd.DataFrame(filtered_dw)
+    print(filtered_dw)
     
-    filtered_dw = new_df[ new_df['is_dw']>0 ] 
-    filtered_non_dw = new_df[ new_df['is_dw']<1 ] 
-    print('From the {} pairs, only {} are classified as dw (in {} sec = {} sec per pair), so {} are non-dw'.format(len(new_df), len(filtered_dw), timeclass, timeclass/len(new_df), len(filtered_non_dw)))
+    print('From the {} pairs, only {} are classified as dw (in {} sec = {} sec per pair), so {} are non-dw'.format(npairs, len(filtered_dw), timeclass, timeclass/npairs, npairs-len(filtered_dw)))
     
     filtered_df_name='output_ML/T{}/DW_T{}.csv'.format(T,T)
     filtered_dw.to_csv(filtered_df_name, index=False)
     
-    filtered_non_dw_name='output_ML/T{}/nonDW_T{}.feather'.format(T,T)
-    filtered_non_dw.reset_index().to_feather(filtered_non_dw_name, compression='zstd')

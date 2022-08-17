@@ -22,7 +22,7 @@ import myparams
 if __name__ == "__main__":
     M = myparams.M
     T = myparams.T
-    useNEBdata = True
+    useNEB4training = myparams.useNEB4training
     Tlabel = str(T).replace('.','')
     print('\n*** Requested to train the dw classifier at T={} (M={})'.format(T,M))
     ndecimals=10
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     Tdir='./NEB_calculations/T{}'.format(T)
     if not os.path.isfile('{}/NON-DW.txt'.format(Tdir)):
         print('\n*(!)* Notice that there are no NEB data\n')
-        useNEBdata = False
+        useNEB4training = False
     else:
         with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
             lines = nondw_file.readlines()
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     all_pairs_df.j = all_pairs_df.j.round(ndecimals)
     
     
-    if useNEBdata:        
+    if useNEB4training:        
 
         # split this task between parallel workers
         elements_per_worker=20
@@ -148,7 +148,7 @@ if __name__ == "__main__":
         dw_df['is_dw']=1
         print('Constructed the database of {} dw from the new pairs'.format(len(dw_df)))
     else:
-        print('Not using NEB data for training')
+        print('(We are not using data from NEB, but only pretraining)') 
         dw_df = pd.DataFrame()
         non_dw_df = pd.DataFrame()
     

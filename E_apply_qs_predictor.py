@@ -58,52 +58,49 @@ dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_allpairs.
 all_qs_df = dw_df.copy()
 
 
-# load the NEB data for the plot
-list_neb_qs=[]
-with open('NEB_calculations/T{}/Qs_calculations.txt'.format(T)) as qs_file:
-    lines = qs_file.readlines()
-    for line in lines:
-        qs = line.split()[2]
-        list_neb_qs.append(float(qs))
-neb_qs=pd.DataFrame({'quantum_splitting':list_neb_qs})
-
 
 
 # then I exclude the pairs that I know are NON-dw
-list_nondw=[]
-with open('NEB_calculations/T{}/NON-DW.txt'.format(T)) as qs_file:
-    lines = qs_file.readlines()
-    for line in lines:
-        conf = int(line.split()[0].strip('Cnf-'))
-        i,j = line.split()[1].split('_')
-        i = round(float(i),ndecimals)
-        j = round(float(j),ndecimals)
-        list_nondw.append((conf,i,j))
-nondw=pd.DataFrame(list_nondw,columns=['conf','i','j'])
-temp_df = all_qs_df.reset_index(drop=True)
-temp_df['index'] = temp_df.index
-remove_df = temp_df.merge(nondw, how = 'inner' ,indicator=False)
-remove_df = remove_df.set_index('index')
-all_qs_df = all_qs_df[~all_qs_df.isin(remove_df)].dropna().reset_index()
-print('\n*We know that {} of the new pairs are non-dw (from NEB), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
+if not os.path.isfile('NEB_calculations/T{}/NON-DW.txt'.format(T)):
+    print('\n*(!)* Notice that there are no NON-DW pairs to exclude\n')
+else:
+    list_nondw=[]
+    with open('NEB_calculations/T{}/NON-DW.txt'.format(T)) as qs_file:
+        lines = qs_file.readlines()
+        for line in lines:
+            conf = int(line.split()[0].strip('Cnf-'))
+            i,j = line.split()[1].split('_')
+            i = round(float(i),ndecimals)
+            j = round(float(j),ndecimals)
+            list_nondw.append((conf,i,j))
+    nondw=pd.DataFrame(list_nondw,columns=['conf','i','j'])
+    temp_df = all_qs_df.reset_index(drop=True)
+    temp_df['index'] = temp_df.index
+    remove_df = temp_df.merge(nondw, how = 'inner' ,indicator=False)
+    remove_df = remove_df.set_index('index')
+    all_qs_df = all_qs_df[~all_qs_df.isin(remove_df)].dropna().reset_index()
+    print('\n*We know that {} of the new pairs are non-dw (from NEB), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
 
 # then exclude the pairs for which I run the NEB
-list_neb_done=[]
-with open('NEB_calculations/T{}/Qs_calculations.txt'.format(T)) as qs_file:
-    lines = qs_file.readlines()
-    for line in lines:
-        conf = int(line.split()[0].strip('Cnf-'))
-        i,j = line.split()[1].split('_')
-        i = round(float(i),ndecimals)
-        j = round(float(j),ndecimals)
-        list_neb_done.append((conf,i,j))
-neb_done=pd.DataFrame(list_neb_done,columns=['conf','i','j'])
-temp_df = all_qs_df.reset_index(drop=True)
-temp_df['index'] = temp_df.index
-remove_df = temp_df.merge(neb_done, how = 'inner' ,indicator=False)
-remove_df = remove_df.set_index('index')
-all_qs_df = all_qs_df[~all_qs_df.isin(remove_df)].dropna()
-print('\n*For {} of the new pairs we already run the NEB, so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
+if not os.path.isfile('NEB_calculations/T{}/Qs_calculations.txt'.format(T)):
+    print('\n*(!)* Notice that there are no NEB pairs to exclude\n')
+else:
+    list_neb_done=[]
+    with open('NEB_calculations/T{}/Qs_calculations.txt'.format(T)) as qs_file:
+        lines = qs_file.readlines()
+        for line in lines:
+            conf = int(line.split()[0].strip('Cnf-'))
+            i,j = line.split()[1].split('_')
+            i = round(float(i),ndecimals)
+            j = round(float(j),ndecimals)
+            list_neb_done.append((conf,i,j))
+    neb_done=pd.DataFrame(list_neb_done,columns=['conf','i','j'])
+    temp_df = all_qs_df.reset_index(drop=True)
+    temp_df['index'] = temp_df.index
+    remove_df = temp_df.merge(neb_done, how = 'inner' ,indicator=False)
+    remove_df = remove_df.set_index('index')
+    all_qs_df = all_qs_df[~all_qs_df.isin(remove_df)].dropna()
+    print('\n*For {} of the new pairs we already run the NEB, so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
 
 # Storing
 all_qs_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_newpairs.csv'.format(Tdir,T),index=False)

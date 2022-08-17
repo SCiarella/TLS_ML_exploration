@@ -67,7 +67,7 @@ if __name__ == "__main__":
     print('of which I mislabeled {} dw and {} non-dw'.format(error_dw, error_nondw))
     
     try:
-        with open("output_ML/dw_classifier_performances.txt",'w+') as f:
+        with open("output_ML/T{}/dw_classifier_performances.txt".format(T),'w+') as f:
             sys.stdout = f # Change the standard output to the file we created.
             print('\t***Performances over the training set:')
             print(perf)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     print('of which I mislabeled {} dw and {} non-dw'.format(error_dw, error_nondw))
     
     try:
-        with open("output_ML/dw_classifier_performances.txt",'a') as f:
+        with open("output_ML/T{}/dw_classifier_performances.txt".format(T),'a') as f:
             sys.stdout = f # Change the standard output to the file we created.
             print('\n\n\t***Performances over the test set:')
             print(perf)
