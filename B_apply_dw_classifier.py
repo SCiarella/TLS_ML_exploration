@@ -63,7 +63,7 @@ if __name__ == "__main__":
     # *************
     # (2) remove pairs with a Delta_E which is too large
     new_df = new_df[new_df['Delta_E']<myparams.DeltaEMax]
-    print('* We decide to keep only the ones with Delta_E<{}, which are {}'.format(myparams.DeltaEMax, len(new_df)))
+    print('*-> We decide to keep only the ones with Delta_E<{}, which are {}'.format(myparams.DeltaEMax, len(new_df)))
 
     
     # *************
