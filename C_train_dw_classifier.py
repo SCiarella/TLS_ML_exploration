@@ -83,18 +83,17 @@ if __name__ == "__main__":
     
     # If we are not exited, it means that we have more NEB data to use to retrain the model
     
-    # For these new NEB informations, I look for the corresponding input pair 
-    # so I need to load the input features for all of them
-    try:
-        all_pairs_df = pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
-    except:
-        print('Error: there are no data prepared')
-        sys.exit()
-    all_pairs_df.i = all_pairs_df.i.round(ndecimals)
-    all_pairs_df.j = all_pairs_df.j.round(ndecimals)
-    
-    
     if useNEB4training:        
+
+        # For these new NEB informations, I look for the corresponding input pair 
+        # so I need to load the input features for all of them
+        try:
+            all_pairs_df = pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
+            all_pairs_df.i = all_pairs_df.i.round(ndecimals)
+            all_pairs_df.j = all_pairs_df.j.round(ndecimals)
+        except:
+            print('Error: there are no data prepared')
+            sys.exit()
 
         # split this task between parallel workers
         elements_per_worker=20
@@ -167,6 +166,17 @@ if __name__ == "__main__":
     non_dw_df = non_dw_df.drop(columns=['T','i2','j2'])
 
 
+#    # set isdw col as binary
+    qs_df['is_dw']=qs_df['is_dw'].astype(bool)
+    dw_df['is_dw']=dw_df['is_dw'].astype(bool)
+    non_dw_df['is_dw']=non_dw_df['is_dw'].astype(bool)
+    qs_df['Tij']=qs_df['Tij'].astype(int)
+    dw_df['Tij']=dw_df['Tij'].astype(int)
+    non_dw_df['Tij']=non_dw_df['Tij'].astype(int)
+    qs_df['Tji']=qs_df['Tji'].astype(int)
+    dw_df['Tji']=dw_df['Tji'].astype(int)
+    non_dw_df['Tji']=non_dw_df['Tji'].astype(int)
+
     
     # This is the new training df that will be stored at the end 
     new_training_df = qs_df.copy()
@@ -212,6 +222,7 @@ if __name__ == "__main__":
     # you can also change the training time
     training_hours=myparams.qs_pred_train_hours
     time_limit = training_hours*60*60
+
     
     # train
     # * I am excluding KNN because it is problematic
