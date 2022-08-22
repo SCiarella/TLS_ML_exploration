@@ -23,6 +23,7 @@ if __name__ == "__main__":
     M = myparams.M
     T = myparams.T
     Tlabel = str(T).replace('.','')
+    useNEB4training = myparams.useNEB4training
     print('\n*** Requested to train the qs predictor at T={} (M={})'.format(T,M))
     ndecimals=10
     rounding_error=10**(-1*(ndecimals+1))
@@ -46,11 +47,11 @@ if __name__ == "__main__":
         with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
             lines = qs_file.readlines()
             for line in lines:
-                conf = line.split()[0]
+                conf = float(line.split()[0].split('Cnf-')[-1])
                 i,j = line.split()[1].split('_')
                 i = round(float(i),ndecimals)
                 j = round(float(j),ndecimals)
-                qs = line.split()[2]
+                qs = float(line.split()[2])
                 list_neb_qs.append((T,conf,i,j,qs))
         print('From the NEB results we have {} pairs for which we know the qs'.format(len(list_neb_qs)))
     
@@ -79,7 +80,6 @@ if __name__ == "__main__":
     # If we are not exited, it means that we have more qs data to use to retrain the model
     
     if useNEB4training:
-    
         # split this task between parallel workers
         elements_per_worker=100
         chunks=[list_neb_qs[i:i + elements_per_worker] for i in range(0, len(list_neb_qs), elements_per_worker)]
@@ -92,16 +92,16 @@ if __name__ == "__main__":
             # I search for the given configuration
             for element in chunk:
                 T,conf,i,j,qs = element
-                a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))]
+                a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))].copy()
                 if len(a)>1:
                     print('Error! multiple correspondences in dw')
                     sys.exit()
                 elif len(a)==1:
                     a['quantum_splitting']=qs
                     worker_df = pd.concat([worker_df,a])
-               # else:
-               #     print('Error: we do not have {}'.format(element))
-               #     sys.exit()
+                else:
+                    print('Error: we do not have {}'.format(element))
+                    sys.exit()
             return worker_df
             
         print('collecting info for NEB pairs')

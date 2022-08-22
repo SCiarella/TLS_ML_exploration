@@ -26,6 +26,7 @@ if __name__ == "__main__":
     print('\n*** Requested to validate the qs predictor at T={} (M={})'.format(T,M))
     ndecimals=10
     rounding_error=10**(-1*(ndecimals+1))
+    max_qs_for_plot=1e-1
     thresh_tls= 0.00151
     
     save_path='MLmodel/qs-regression-M{}-T{}'.format(M,Tlabel)
@@ -34,6 +35,7 @@ if __name__ == "__main__":
     
     # ********* RESULTS OVER THE TRAINING SET
     training_set = training_set.sort_values('quantum_splitting',ascending=False)
+    training_set = training_set[training_set['quantum_splitting']<max_qs_for_plot]
     qsMAX=2.5
     print('(Excluding from the plot pairs with qs>{})'.format(qsMAX))
     training_set=training_set[training_set['quantum_splitting']<qsMAX]
@@ -81,6 +83,7 @@ if __name__ == "__main__":
     # ********* RESULTS OVER THE TEST SET
     # * Convert to float to have optimal performances!
     validation_set= validation_set.sort_values('quantum_splitting',ascending=False)
+    validation_set = validation_set[validation_set['quantum_splitting']<max_qs_for_plot]
     validation_set_nolab = validation_set.drop(columns=['i','j','conf','quantum_splitting','10tominusquantum_splitting'])
     validation_set_nolab = TabularDataset(validation_set_nolab)
     y_true_val = np.power(10, -validation_set['10tominusquantum_splitting'])  # values to predict
@@ -148,11 +151,11 @@ if __name__ == "__main__":
         with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
             lines = qs_file.readlines()
             for line in lines:
-                conf = line.split()[0]
+                conf = float(line.split()[0].split('Cnf-')[-1])
                 i,j = line.split()[1].split('_')
                 i = round(float(i),ndecimals)
                 j = round(float(j),ndecimals)
-                qs = line.split()[2]
+                qs = float(line.split()[2])
                 list_neb_qs.append((T,conf,i,j,qs))
         
         # split this task between parallel workers

@@ -22,8 +22,8 @@ import myparams
 if __name__ == "__main__":
     M = myparams.M
     T = myparams.T
-    useNEB4training = myparams.useNEB4training
     Tlabel = str(T).replace('.','')
+    useNEB4training = myparams.useNEB4training
     print('\n*** Requested to train the dw classifier at T={} (M={})'.format(T,M))
     ndecimals=10
     rounding_error=10**(-1*(ndecimals+1))
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
             lines = nondw_file.readlines()
             for line in lines:
-                conf = line.split()[0]
+                conf = float(line.split()[0].split('Cnf-')[-1])
                 i,j = line.split()[1].split('_')
                 i = round(float(i),ndecimals)
                 j = round(float(j),ndecimals)
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
             lines = dw_file.readlines()
             for line in lines:
-                conf = line.split()[0]
+                conf = float(line.split()[0].split('Cnf-')[-1])
                 i,j = line.split()[1].split('_')
                 i = round(float(i),ndecimals)
                 j = round(float(j),ndecimals)
@@ -112,14 +112,12 @@ if __name__ == "__main__":
                 a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
                 if len(a)>1:
                     print('Error! multiple correspondences for {}'.format(element))
-                    with pd.option_context('display.float_format', '{:0.20f}'.format):
-                        print(a)
-                        print(a[['i','j']])
                     sys.exit()
                 elif len(a)==1:
                     worker_df = pd.concat([worker_df,a])
-        #        else:
-        #            print('WARNING: we do not have {}'.format(element))
+#                else:
+#                    print('\nWARNING: we do not have {}'.format(element))
+#                    sys.exit()
             return worker_df
     
         print('collecting info for NEB pairs')
