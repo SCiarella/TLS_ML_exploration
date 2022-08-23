@@ -102,4 +102,3 @@ if __name__ == "__main__":
     
     filtered_df_name='output_ML/T{}/DW_T{}.csv'.format(T,T)
     filtered_dw.to_csv(filtered_df_name, index=False)
-    
