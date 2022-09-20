@@ -24,6 +24,20 @@ git clone https://github.com/SCiarella/autogluon
 cd autogluon && ./full_install.sh
 ```
 
+---
+**NOTE**
+
+If you are a MacOS user you need to manually install the correct version of LibOMP via:
+```
+# brew install wget
+wget https://raw.githubusercontent.com/Homebrew/homebrew-core/fb8323f2b170bd4ae97e1bac9bf3e2983af3fdb0/Formula/libomp.rb
+brew uninstall libomp
+brew install libomp.rb
+rm libomp.rb
+```
+
+---
+
 Then you can proceed with the download of this package
 ```
 cd ~
