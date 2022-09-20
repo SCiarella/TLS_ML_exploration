@@ -161,9 +161,9 @@ if __name__ == "__main__":
     qs_df = pd.concat([dw_df,non_dw_df])
 
     # remove useless column
-    qs_df = qs_df.drop(columns=['T','i2','j2'])
-    dw_df = dw_df.drop(columns=['T','i2','j2'])
-    non_dw_df = non_dw_df.drop(columns=['T','i2','j2'])
+    qs_df = qs_df.drop(columns=['T','i2','j2','index'])
+    dw_df = dw_df.drop(columns=['T','i2','j2','index'])
+    non_dw_df = non_dw_df.drop(columns=['T','i2','j2','index'])
 
 
 #    # set isdw col as binary
