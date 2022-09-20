@@ -47,7 +47,7 @@ if __name__ == "__main__":
         with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
             lines = qs_file.readlines()
             for line in lines:
-                conf = float(line.split()[0].split('Cnf-')[-1])
+                conf = int(line.split()[0].split('Cnf-')[-1])
                 i,j = line.split()[1].split('_')
                 i = round(float(i),ndecimals)
                 j = round(float(j),ndecimals)
@@ -129,7 +129,7 @@ if __name__ == "__main__":
         qs_df = qs_df.reset_index(drop=True)
 
     # remove useless column
-    qs_df = qs_df.drop(columns=['T','i2','j2'])
+    qs_df = qs_df.drop(columns=['T','i2','j2','index'])
     print(qs_df)
 
     
