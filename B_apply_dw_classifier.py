@@ -28,11 +28,22 @@ def PBC_dist(x):
         x+=2*Lhalf
     return x
 
+def ensure_dir(filename):
+    dirname = os.path.dirname(filename)
+    if dirname:
+        try:
+            os.makedirs(dirname)
+        except OSError:
+            pass
+
 if __name__ == "__main__":
     M = myparams.M
     T = myparams.T
     Tlabel = str(T).replace('.','')
     print('\n*** Requested to apply the dw classifier at T={} (M={})'.format(T,M))
+
+    ensure_dir('output_ML/T{}/'.format(T))
+    ensure_dir('NEB_calculations/T{}/'.format(T))
     
     # *************
     # (1) Load the preprocessed data 
