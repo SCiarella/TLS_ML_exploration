@@ -78,6 +78,10 @@ if myparams.useNEB4training:
         temp_df['index'] = temp_df.index
         remove_df = temp_df.merge(nondw, how = 'inner' ,indicator=False)
         remove_df = remove_df.set_index('index')
+        print(remove_df)
+        print(remove_df.columns)
+        print(all_qs_df)
+        print(all_qs_df.columns)
         all_qs_df = all_qs_df[~all_qs_df.isin(remove_df)].dropna().reset_index()
         print('\n*We know that {} of the new pairs are non-dw (from NEB), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
     
