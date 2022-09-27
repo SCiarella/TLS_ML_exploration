@@ -73,16 +73,12 @@ if myparams.useNEB4training:
                 i = round(float(i),ndecimals)
                 j = round(float(j),ndecimals)
                 list_nondw.append((conf,i,j))
-        nondw=pd.DataFrame(list_nondw,columns=['conf','i','j'])
+        nondw=pd.DataFrame(list_nondw,columns=['conf','i','j']).reset_index(drop=True)
         temp_df = all_qs_df.reset_index(drop=True)
         temp_df['index'] = temp_df.index
         remove_df = temp_df.merge(nondw, how = 'inner' ,indicator=False)
         remove_df = remove_df.set_index('index')
-        print(remove_df)
-        print(remove_df.columns)
-        print(all_qs_df)
-        print(all_qs_df.columns)
-        all_qs_df = all_qs_df[~all_qs_df.isin(remove_df)].dropna().reset_index()
+        all_qs_df= all_qs_df.drop(remove_df.index).reset_index()
         print('\n*We know that {} of the new pairs are non-dw (from NEB), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
     
     # then exclude the pairs for which I run the NEB
@@ -103,7 +99,7 @@ if myparams.useNEB4training:
         temp_df['index'] = temp_df.index
         remove_df = temp_df.merge(neb_done, how = 'inner' ,indicator=False)
         remove_df = remove_df.set_index('index')
-        all_qs_df = all_qs_df[~all_qs_df.isin(remove_df)].dropna()
+        all_qs_df= all_qs_df.drop(remove_df.index).reset_index()
         print('\n*For {} of the new pairs we already run the NEB, so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
 
 # Storing
