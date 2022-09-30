@@ -33,7 +33,7 @@ if __name__ == "__main__":
     try:
         used_data = pd.read_feather('MLmodel/data-used-by-qspredictor-M{}.feather'.format(M))
     except:
-        print('First time training the classifier')
+        print('First time training the qs predictor')
         used_data = pd.DataFrame()
     
     # Then I check the NEB calculations to see the what new data are available 
