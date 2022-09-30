@@ -44,8 +44,12 @@ dw_df = pd.read_csv('{}/DW_T{}.csv'.format(Tdir,T))
 nglass = len(dw_df['conf'].drop_duplicates())
 print('\n***Reading the data at T={}\nWe found {} glasses and a total of {} pairs\n\nStarting predictions'.format(T,nglass, len(dw_df)))
 
+dw_df['i2'] = dw_df['i2'].astype(int)
+dw_df['j2'] = dw_df['j2'].astype(int)
+print(dw_df)
+
 # predict the qs
-X = dw_df.drop(columns=['i','j','conf','is_dw'])
+X = dw_df.drop(columns=['i','j','conf','is_dw','i2','j2','T'])
 X = TabularDataset(X)
 y_pred_by_AI = predictor.predict(dw_df)
 y_pred_by_AI = np.power(10, -y_pred_by_AI)
@@ -54,7 +58,7 @@ print('The qs has been predicted. Now storing results')
 # store the prediction
 dw_df['quantum_splitting']=y_pred_by_AI
 dw_df = dw_df.sort_values(by='quantum_splitting')
-dw_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_allpairs.csv'.format(Tdir,T),index=False)
+dw_df[['conf','i','j','quantum_splitting','i2','j2']].to_csv('{}/predictedQs_T{}_allpairs.csv'.format(Tdir,T),index=False)
 all_qs_df = dw_df.copy()
 
 
@@ -103,4 +107,4 @@ if myparams.useNEB4training:
         print('\n*For {} of the new pairs we already run the NEB, so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
 
 # Storing
-all_qs_df[['conf','i','j','quantum_splitting']].to_csv('{}/predictedQs_T{}_newpairs.csv'.format(Tdir,T),index=False)
+all_qs_df[['conf','i','j','quantum_splitting','i2','j2']].to_csv('{}/predictedQs_T{}_newpairs.csv'.format(Tdir,T),index=False)

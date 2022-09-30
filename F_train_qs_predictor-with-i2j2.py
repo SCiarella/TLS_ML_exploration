@@ -26,7 +26,6 @@ if __name__ == "__main__":
     useNEB4training = myparams.useNEB4training
     print('\n*** Requested to train the qs predictor at T={} (M={})'.format(T,M))
     ndecimals=10
-    rounding_error=10**(-1*(ndecimals+1))
     model_path='MLmodel/qs-regression-M{}-T{}'.format(M,Tlabel)
     
     # *************
@@ -49,8 +48,8 @@ if __name__ == "__main__":
             for line in lines:
                 conf = int(line.split()[0].split('Cnf-')[-1])
                 i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
+                i = int(i)
+                j = int(j)
                 qs = float(line.split()[2])
                 list_neb_qs.append((T,conf,i,j,qs))
         print('From the NEB results we have {} pairs for which we know the qs'.format(len(list_neb_qs)))
@@ -92,7 +91,7 @@ if __name__ == "__main__":
             # I search for the given configuration
             for element in chunk:
                 T,conf,i,j,qs = element
-                a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))].copy()
+                a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i2']==i))&(pairs_df['j2']==j)].copy()
                 if len(a)>1:
                     print('Error! multiple correspondences in dw')
                     sys.exit()

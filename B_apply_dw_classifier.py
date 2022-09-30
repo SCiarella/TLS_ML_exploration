@@ -69,7 +69,7 @@ if __name__ == "__main__":
     new_df.to_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
 
     # remove the useless columns
-    new_df=new_df.drop(columns=['i2','j2','T'])
+#    new_df=new_df.drop(columns=['i2','j2','T'])
 
     # *************
     # (2) remove pairs with a Delta_E which is too large
@@ -103,7 +103,8 @@ if __name__ == "__main__":
     filtered_dw = pd.DataFrame()
     for chunk_id, chunk in enumerate(df_chunks):
         print('\n* Classifying part {}/{}'.format(chunk_id+1,nchunks),flush=True)
-        df_chunks[chunk_id]['is_dw'] = dwclassifier.predict(chunk.drop(columns=['conf','i','j']))
+        df_chunks[chunk_id]['is_dw'] = dwclassifier.predict(chunk.drop(columns=['conf','i','j','i2','j2','T']))
+        #df_chunks[chunk_id]['is_dw'] = dwclassifier.predict(chunk.drop(columns=['conf','i','j']))
         # I only keep the predicted dw
         filtered_dw = pd.concat([filtered_dw,df_chunks[chunk_id][df_chunks[chunk_id]['is_dw']>0]])
         print('done in {} sec (collected up to {} dw) '.format(time.time() -start, len(filtered_dw)))
