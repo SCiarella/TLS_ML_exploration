@@ -40,27 +40,29 @@ if __name__ == "__main__":
     list_neb_nondw=[]
     list_neb_dw=[]
     Tdir='./NEB_calculations/T{}'.format(T)
-    if not os.path.isfile('{}/NON-DW.txt'.format(Tdir)):
-        print('\n*(!)* Notice that there are no NEB data\n')
-        useNEB4training = False
-    else:
-        with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
-            lines = nondw_file.readlines()
-            for line in lines:
-                conf = float(line.split()[0].split('Cnf-')[-1])
-                i,j = line.split()[1].split('_')
-                i = int(i)
-                j = int(j)
-                list_neb_nondw.append((T,conf,i,j))
-        with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
-            lines = dw_file.readlines()
-            for line in lines:
-                conf = float(line.split()[0].split('Cnf-')[-1])
-                i,j = line.split()[1].split('_')
-                i = int(i)
-                j = int(j)
-                list_neb_dw.append((T,conf,i,j))
-        print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_neb_nondw),len(list_neb_dw)))
+
+    if useNEB4training:        
+        if not os.path.isfile('{}/NON-DW.txt'.format(Tdir)):
+            print('\n*(!)* Notice that there are no NEB data\n')
+            useNEB4training = False
+        else:
+            with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
+                lines = nondw_file.readlines()
+                for line in lines:
+                    conf = float(line.split()[0].split('Cnf-')[-1])
+                    i,j = line.split()[1].split('_')
+                    i = int(i)
+                    j = int(j)
+                    list_neb_nondw.append((T,conf,i,j))
+            with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
+                lines = dw_file.readlines()
+                for line in lines:
+                    conf = float(line.split()[0].split('Cnf-')[-1])
+                    i,j = line.split()[1].split('_')
+                    i = int(i)
+                    j = int(j)
+                    list_neb_dw.append((T,conf,i,j))
+            print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_neb_nondw),len(list_neb_dw)))
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
     try:
@@ -107,7 +109,7 @@ if __name__ == "__main__":
             for element in chunk:
                 T,conf,i,j = element
                 # do we have it ?
-                a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i2']==i))&(all_pairs_df['j2']==j)]
+                a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i2']==i)&(all_pairs_df['j2']==j)]
                 if len(a)>1:
                     print('Error! multiple correspondences for {}'.format(element))
                     sys.exit()

@@ -39,20 +39,21 @@ if __name__ == "__main__":
     # Then I check the NEB calculations to see the what new data are available 
     list_neb_qs=[]
     Tdir='./NEB_calculations/T{}'.format(T)
-    if not os.path.isfile('{}/NON-DW.txt'.format(Tdir)):
-        print('\n*(!)* Notice that there are no NEB data\n')
-        useNEB4training = False
-    else:
-        with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
-            lines = qs_file.readlines()
-            for line in lines:
-                conf = int(line.split()[0].split('Cnf-')[-1])
-                i,j = line.split()[1].split('_')
-                i = int(i)
-                j = int(j)
-                qs = float(line.split()[2])
-                list_neb_qs.append((T,conf,i,j,qs))
-        print('From the NEB results we have {} pairs for which we know the qs'.format(len(list_neb_qs)))
+    if useNEB4training:
+        if not os.path.isfile('{}/NON-DW.txt'.format(Tdir)):
+            print('\n*(!)* Notice that there are no NEB data\n')
+            useNEB4training = False
+        else:
+            with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
+                lines = qs_file.readlines()
+                for line in lines:
+                    conf = int(line.split()[0].split('Cnf-')[-1])
+                    i,j = line.split()[1].split('_')
+                    i = int(i)
+                    j = int(j)
+                    qs = float(line.split()[2])
+                    list_neb_qs.append((T,conf,i,j,qs))
+            print('From the NEB results we have {} pairs for which we know the qs'.format(len(list_neb_qs)))
     
     
     # then load the info about all the pairs
@@ -91,7 +92,7 @@ if __name__ == "__main__":
             # I search for the given configuration
             for element in chunk:
                 T,conf,i,j,qs = element
-                a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i2']==i))&(pairs_df['j2']==j)].copy()
+                a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i2']==i)&(pairs_df['j2']==j)].copy()
                 if len(a)>1:
                     print('Error! multiple correspondences in dw')
                     sys.exit()
