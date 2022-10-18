@@ -63,6 +63,7 @@ if __name__ == "__main__":
     
     
     print('\n\t@@@@ Overall we have {} pairs, while the last time you run this we had {}'.format(len(new_df),len(old_df)))
+    del old_df
 
     
     # * Then I store this df to avoid having to redo it 
@@ -98,6 +99,7 @@ if __name__ == "__main__":
     print('Temporarily splitting the data ({} pairs) in {} parts'.format(npairs,nchunks))
     df_chunks = np.array_split(new_df, nchunks)
     del new_df
+    print('Classification starting:',flush=True)
 
     filtered_chunks = []
     filtered_dw = pd.DataFrame()
