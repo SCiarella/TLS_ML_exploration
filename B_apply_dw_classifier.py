@@ -49,28 +49,7 @@ if __name__ == "__main__":
     # (1) Load the preprocessed data 
     new_df=pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
     
-    # load the df containing all the pairs that I found last time
-    try:
-        old_df = pd.read_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel))
-    except:
-        print('First time running this code. Have you already trained the classifier using C_* ? If yes you can re-execute this')
-        new_df.to_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
-        sys.exit()
-    
-    if len(new_df)<len(old_df):
-        print('\n***Error: input_features* has lenght {} while I find only {} pairs. This is only possible if you have lost data!'.format(len(old_df),len(new_df)) )
-        sys.exit()
-    
-    
-    print('\n\t@@@@ Overall we have {} pairs, while the last time you run this we had {}'.format(len(new_df),len(old_df)))
-    del old_df
-
-    
-    # * Then I store this df to avoid having to redo it 
-    new_df.to_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
-
-    # remove the useless columns
-#    new_df=new_df.drop(columns=['i2','j2','T'])
+    print('\n\t@@@@ Overall we have {} pairs'.format(len(new_df)))
 
     # *************
     # (2) remove pairs with a Delta_E which is too large

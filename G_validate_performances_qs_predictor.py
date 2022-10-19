@@ -124,7 +124,7 @@ if __name__ == "__main__":
     else:
         # Plot the efficiency by measuring how many of the NEB that we actually run were tls
         # then load the info about all the pairs
-        pairs_df = pd.read_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel))
+        pairs_df = pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
         
         def process_chunk(chunk):
             worker_df=pd.DataFrame()

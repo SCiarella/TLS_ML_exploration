@@ -57,7 +57,7 @@ if __name__ == "__main__":
     
     
     # then load the info about all the pairs
-    pairs_df = pd.read_feather('MLmodel/input_features_all_pairs_M{}-T{}.feather'.format(M,Tlabel))
+    pairs_df = pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
     # and format in the correct way
     pairs_df = pairs_df.round(decimals=10)
     
