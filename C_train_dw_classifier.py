@@ -215,7 +215,7 @@ if __name__ == "__main__":
     #   Notice that autogluon offer different 'presets' option to maximize precision vs data-usage vs time
     #   if you are not satisfied with the results here, you can try different 'presets' option or build your own
     # check which one to use
-    if myparams.Fast==True:
+    if myparams.Fast_dw==True:
         print('We are training in the fast way')
         presets='good_quality_faster_inference_only_refit'
     else:

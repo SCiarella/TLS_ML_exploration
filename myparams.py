@@ -4,4 +4,5 @@ M=3
 T=0.07
 useNEB4training=True
 DeltaEMax=0.8
-Fast=True
+Fast_dw=True
+Fast_qs=True
