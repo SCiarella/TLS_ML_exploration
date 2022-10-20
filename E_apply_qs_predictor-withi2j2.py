@@ -103,7 +103,8 @@ if myparams.useNEB4training:
         temp_df['index'] = temp_df.index
         remove_df = temp_df.merge(neb_done, how = 'inner' ,indicator=False)
         remove_df = remove_df.set_index('index')
-        all_qs_df= all_qs_df.drop(remove_df.index).reset_index()
+        all_qs_df= all_qs_df.drop(remove_df.index)
+        all_qs_df= all_qs_df.reset_index(drop=True)
         print('\n*For {} of the new pairs we already run the NEB, so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
 
 # Storing
