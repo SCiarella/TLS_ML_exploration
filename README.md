@@ -58,8 +58,10 @@ git clone https://github.com/SCiarella/TLS_ML_exploration.git
 
 The package is already ready to run and it just needs your new data. 
 
-
+---
 ## Overview
+
+<img src="./doc/fig_steps.png" width="1100" />
 
 The repository consist in a series of python codes named `step[0-4].py` . 
 
