@@ -95,7 +95,9 @@ For a different problem than the one we discuss, we suggest to start with the in
 
 
 #### Step 1: Training the classifier
-Next we train the model that has to filter pairs 
+
+Next we train the classifier. The role of the classifier is to exclude pairs that are evidently not in the target group. In our example of TLS search we know that a non-DW pair can not form a TLS, so we separate them a priori. 
+In addition to the input  
 
 
 

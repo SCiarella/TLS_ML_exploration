@@ -21,10 +21,11 @@ if __name__ == "__main__":
     M = myparams.M
     In_file = myparams.In_file
     In_label = In_file.split('/')[-1]).split('.')[0]
-    useNEB4training = myparams.useNEB4training
+    use_new_calculations = myparams.use_new_calculations
     print('\n*** Requested to train the classifier from {}'.format(In_file))
-    ndecimals=10
-    rounding_error=10**(-1*(ndecimals+1))
+    ndecimals=myparams.ij_decimals
+    if ndecimals>0:
+        rounding_error=10**(-1*(ndecimals+1))
     model_path='MLmodel/classification-{}'.format(In_label)
     
     # *************
@@ -35,31 +36,31 @@ if __name__ == "__main__":
         print('First time training the classifier')
         used_data = pd.DataFrame()
     
-    # Then I check the NEB calculations to see the what new data are available 
-    list_neb_nondw=[]
-    list_neb_dw=[]
-    Tdir='./NEB_calculations/T{}'.format(T)
-    if not os.path.isfile('{}/NON-DW.txt'.format(Tdir)):
-        print('\n*(!)* Notice that there are no NEB data\n')
-        useNEB4training = False
+    # Then I check the exact calculations to see the if new data are available (otherwise the iterative training procedure got stuck)
+    list_class_0=[]
+    list_class_1=[]
+    calculation_dir='./exact_calculations/{}'.format(In_label)
+    if not os.path.isfile('{}/NON-DW.txt'.format(calculation_dir)):
+        print('\n*(!)* Notice that there are no classification data\n')
+        use_new_calculations = False
     else:
-        with open('{}/NON-DW.txt'.format(Tdir)) as nondw_file:
+        with open('{}/NON-DW.txt'.format(calculation_dir)) as nondw_file:
             lines = nondw_file.readlines()
             for line in lines:
                 conf = float(line.split()[0].split('Cnf-')[-1])
                 i,j = line.split()[1].split('_')
                 i = round(float(i),ndecimals)
                 j = round(float(j),ndecimals)
-                list_neb_nondw.append((T,conf,i,j))
-        with open('{}/Qs_calculations.txt'.format(Tdir)) as dw_file:
+                list_class_0.append((T,conf,i,j))
+        with open('{}/Qs_calculations.txt'.format(calculation_dir)) as dw_file:
             lines = dw_file.readlines()
             for line in lines:
                 conf = float(line.split()[0].split('Cnf-')[-1])
                 i,j = line.split()[1].split('_')
                 i = round(float(i),ndecimals)
                 j = round(float(j),ndecimals)
-                list_neb_dw.append((T,conf,i,j))
-        print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_neb_nondw),len(list_neb_dw)))
+                list_class_1.append((T,conf,i,j))
+        print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_class_0),len(list_class_1)))
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
     try:
@@ -73,15 +74,15 @@ if __name__ == "__main__":
     
     #************
     # * Check wether or not you should retrain the model
-    if(len(pretrain_df)+len(list_neb_dw)+len(list_neb_nondw))>len(used_data):
-        print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining (both dw and non-dw)\n\t{} non-dw from NEB\n\t{} dw from NEB'.format(len(used_data),len(pretrain_df),len(list_neb_nondw),len(list_neb_dw)))
+    if(len(pretrain_df)+len(list_class_1)+len(list_class_0))>len(used_data):
+        print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining (both dw and non-dw)\n\t{} non-dw from NEB\n\t{} dw from NEB'.format(len(used_data),len(pretrain_df),len(list_class_0),len(list_class_1)))
     else:
         print('All the data available have been already used to train the model')
         sys.exit()
     
     # If we are not exited, it means that we have more NEB data to use to retrain the model
     
-    if useNEB4training:        
+    if use_new_calculations:        
 
         # For these new NEB informations, I look for the corresponding input pair 
         # so I need to load the input features for all of them
@@ -95,7 +96,7 @@ if __name__ == "__main__":
 
         # split this task between parallel workers
         elements_per_worker=20
-        chunks=[list_neb_nondw[i:i + elements_per_worker] for i in range(0, len(list_neb_nondw), elements_per_worker)]
+        chunks=[list_class_0[i:i + elements_per_worker] for i in range(0, len(list_class_0), elements_per_worker)]
         n_chunks = len(chunks)
         print('We are going to submit {} chunks for the non dw \n'.format(n_chunks))
         
@@ -131,7 +132,7 @@ if __name__ == "__main__":
         print('Constructed the database of {} non-dw from the new pairs'.format(len(non_dw_df)))
         
         # *** now get the dw using the same function
-        chunks=[list_neb_dw[i:i + elements_per_worker] for i in range(0, len(list_neb_dw), elements_per_worker)]
+        chunks=[list_class_1[i:i + elements_per_worker] for i in range(0, len(list_class_1), elements_per_worker)]
         n_chunks = len(chunks)
         print('We are going to submit {} chunks for the dw \n'.format(n_chunks))
         pool = mp.Pool(mp.cpu_count())
