@@ -83,12 +83,12 @@ The first step of the procedure consist in collecting the relevant input feature
 In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD]. 
 For the TLS identification, we use the same data structure
 
-| $\Delta E$| $\Delta \vec{r}_{0}$|  $\Delta \vec{r}_{1}$|   $\Delta \vec{r}_{2}$|  d  |  PR |  $|\vec{r}_0-\vec{r}_i|$| ...| 
-|-----------|---------------------|----------------------|-----------------------|-----|-----|-----------------------|----|
-|           |                     |                      |                       |     |     |                       | ...|
-|           |                     |                      |                       |     |     |                       | ...|
-|           |                     |                      |                       |     |     |                       | ...|
-|           |                     |                      |                       |     |     |                       | ...|
+| $\Delta E$| $\Delta \vec{r}0 $|  $\Delta \vec{r}{1}$|   $\Delta \vec{r}{2}$|  d  |  PR |  $|\vec{r}0-\vec{r}i|$ | ...|
+|-----------|-------------------|---------------------|----------------------|-----|-----|--------------------------|----|
+|           |                   |                     |                      |     |     |                          | ...|
+|           |                   |                     |                      |     |     |                          | ...|
+|           |                   |                     |                      |     |     |                          | ...|
+|           |                   |                     |                      |     |     |                          | ...|
 
 
 
