@@ -21,10 +21,10 @@ Two-level systems (TLS) are rare quantum tunneling defects which govern the phys
 
 
 
-The idea of this project is to use *machine learning* to **speed up** the exploration of the landscape of glassy materials or slow dynamics.
+The idea of this project is to use machine learning to **speed up** the exploration of the landscape of glassy materials or slow dynamics, with particular focus on the *iterative training* scheme that we introduced.
 State-to-state transitions like two-level systems are extremely interesting, but when the dynamics is slow they are very hard to find, and the situation is even worse for glassy systems, characterized by an exponential number of states.
-The problem is that often the trajectory of the system do not explore directly the state-to-state transition during the limited observation time.
-The ML model that we propose constructs all the pairs of states and rapidly (<img src="https://latex.codecogs.com/svg.image?10^{-5}" /> s) predicts if the specific transition needs further investigation, thus significantly reducing the computational load. 
+The problem is that often the trajectory of the system does not explore directly the targetted state-to-state transitions during the limited observation time.
+The ML model that we propose constructs all the pairs of states (even the one that the trajectory never crossed) and rapidly (<img src="https://latex.codecogs.com/svg.image?10^{-5}" /> s) predicts target crucial properties for the specific transition, thus estimating if the pair is one of the desired transition and if precise calculation is needed. Overall this significantly reduces the computational load. 
 
 
 
