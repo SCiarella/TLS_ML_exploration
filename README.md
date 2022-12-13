@@ -80,16 +80,14 @@ Let's discuss step by step this procedure, using as example the TLS identificati
 #### Step 0: data collection and preprocessing
 
 The first step of the procedure consist in collecting the relevant input features for the different pairs of states.
-In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD]. 
-For the TLS identification, we use the same data structure
-
-| $\Delta E$| $\Delta \vec{r}0 $|  $\Delta \vec{r}{1}$|   $\Delta \vec{r}{2}$|  d  |  PR |  $|\vec{r}0-\vec{r}i|$ | ...|
-|-----------|-------------------|---------------------|----------------------|-----|-----|--------------------------|----|
-|           |                   |                     |                      |     |     |                          | ...|
-|           |                   |                     |                      |     |     |                          | ...|
-|           |                   |                     |                      |     |     |                          | ...|
-|           |                   |                     |                      |     |     |                          | ...|
-
+In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD] and contains the input features discussed in the paper.
+This database will contain all the info
+|      |feature 1| feature 2| feature 3| ... |
+|------|---------|----------|----------|-----|
+|pair 1|         |          |          |     |
+|pair 2|         |          |          |     |
+|...   |         |          |          |     |
+|pair N|         |          |          |     |
 
 
 The other directories present in the project are the following:
