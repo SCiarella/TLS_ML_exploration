@@ -82,12 +82,12 @@ Let's discuss step by step this procedure, using as example the TLS identificati
 The first step of the procedure consist in collecting the relevant input features for the different pairs of states.
 In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD] and contains the input features discussed in the paper.
 This database will contain all the info
-|      |feature 1| feature 2| feature 3| ... |
-|------|---------|----------|----------|-----|
-|pair 1|         |          |          |     |
-|pair 2|         |          |          |     |
-|...   |         |          |          |     |
-|pair N|         |          |          |     |
+|              |feature 1| feature 2| feature 3| ... |
+|--------------|---------|----------|----------|-----|
+|pair $i_1 j_1$|         |          |          |     |
+|pair $i_2 j_1$|         |          |          |     |
+|...           |         |          |          |     |
+|pair $i_N j_N$|         |          |          |     |
 
 
 The other directories present in the project are the following:
