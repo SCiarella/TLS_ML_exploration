@@ -64,7 +64,7 @@ The package is already ready to run and it just needs your new data.
 The repository consist in a series of python codes named `step[0-4].py` . 
 
 In brief, each of them has the following task:
-* **step0**.py:  data collection
+* **step0**.py:  data collection and preprocessing
 * **step1**.py:  [re-]train the double well (DW) classifier
 * **step2**.py:  DW classification
 * **step3**.py:  [re-]train the predictor
@@ -72,7 +72,17 @@ In brief, each of them has the following task:
 
 
 Those codes run using the content of the MLmodel directory.
-Before following the procedure step by step, the 
+Let's discuss step by step this procedure, using as example the TLS identification problem
+
+#### Step 0: data collection and preprocessing
+
+The first step of the procedure consist in collecting the relevant input features for the different pairs of states.
+In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD].
+
+
+However the starting point of the procedure are the  
+
+
  
 To control the specific details of the ML approach 
 
