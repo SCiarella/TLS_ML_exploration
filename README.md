@@ -75,12 +75,15 @@ In brief, each of them has the following task:
 
 
 Those codes run using the content of the MLmodel directory.
-Let's discuss step by step this procedure, using as example the TLS identification problem
+There is also a supporting file named `myparams.py` that allows the user to control the procedure as explained in detail in the next section.
+Let's discuss step by step this procedure, using as example the TLS identification problem.
+
 
 #### Step 0: Data collection and preprocessing
 
 The first step of the procedure consist in collecting the relevant input features for the different pairs of states.
 In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD] and contains the input features discussed in the paper.
+The user can then specify the correct input file in `myparams.In_file` .
 The input database is expected to have the following structure:
  
 |              |feature 1| feature 2| feature 3| ... |
@@ -97,7 +100,7 @@ For a different problem than the one we discuss, we suggest to start with the in
 #### Step 1: Training the classifier
 
 Next we train the classifier. The role of the classifier is to exclude pairs that are evidently not in the target group. In our example of TLS search we know that a non-DW pair can not form a TLS, so we separate them a priori. 
-In addition to the input  
+In addition to the input 
 
 
 
