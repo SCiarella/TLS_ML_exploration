@@ -3,7 +3,7 @@
 ### A machine learning package by Simone Ciarella
 [**Installation**](#Installation)
 | [**Quick run**](#Quick-run)
-| [**Paper**](https://arxiv.org/pdf/111.pdf)
+| [**Paper**](https://arxiv.org/abs/2212.05582)
 
 
 
