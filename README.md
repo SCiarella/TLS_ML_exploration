@@ -61,18 +61,22 @@ The package is already ready to run and it just needs your new data.
 
 ## Overview
 
-The repository consist in a series of python codes named `step[1-N].py` . 
+The repository consist in a series of python codes named `step[0-4].py` . 
 
 In brief, each of them has the following task:
-* **A**\*.py:  constructs all the pairs of minima (a version for binary file format is also available)
-* **B**\*.py:  classifies double wells (dw)
-* **C**\*.py:  re-trains the dw classifier
-* **D**\*.py:  validates the performances of the dw classifier
-* **E**\*.py:  predicts the qs of all the pairs
-* **F**\*.py:  re-trains the qs predictor
-* **G**\*.py:  validates the performances of the qs predictor
+* **step0**.py:  data collection
+* **step1**.py:  [re-]train the double well (DW) classifier
+* **step2**.py:  DW classification
+* **step3**.py:  [re-]train the predictor
+* **step4**.py:  prediction of the target property of all the pairs (i.e. the quantum splitting)
 
-Those codes run behind the scene using the content of the MLmodel directory.
+
+Those codes run using the content of the MLmodel directory.
+Before following the procedure step by step, the 
+ 
+To control the specific details of the ML approach 
+
+
 The other directories present in the project are the following:
 
 #### Configurations/*
