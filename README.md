@@ -1,4 +1,4 @@
-<img src="./fig.png" width="1100" />
+<img src="./doc/fig_main.png" width="1100" />
 
 # Finding two-level systems in glasses through machine learning
 
@@ -8,7 +8,7 @@ Paper link: [**arXiv: 2212.05582**](https://arxiv.org/abs/2212.05582)
 
 Two-level systems (TLS) are rare quantum tunneling defects which govern the physics of glasses at very low temperature. Because of their extremely low density, it is very hard to directly identify them in computer simulations of model glasses. We introduce a machine learning approach to efficiently explore the potential energy landscape of glass models and identify two-level tunneling defects. We design an algorithm that is able to rapidly predict the quantum splitting between any two amorphous configurations produced by classical simulations. This in turn allows us to shift the computational effort towards the collection and identification of a larger number of TLS, rather than the useless characterization of non-tunneling defects which are much more abundant. Finally, we interpret our machine learning model to understand how TLS are identified and characterized, thus giving physical insight into the features responsible for their presence.
 
-In this repository we share the code used to produce the main findings of the paper
+*In this repository we share the code used to produce the main findings of the paper. This approach can be easily generalized to study other state-to-state transitions*
 
 ---
   
@@ -21,9 +21,12 @@ In this repository we share the code used to produce the main findings of the pa
 
 
 
-The idea of this project is to use *machine learning* to **speed up** the exploration of the landscape of glassy materials.
-In particular two-level systems (TLS) are extremely interesting, but hard to find in molecular dynamics (MD) simulations.
-This program is able to construct all the pairs of inherent structures (IS or energy minima) combining the provided IS and predict in <img src="https://latex.codecogs.com/svg.image?10^{-5}" /> seconds their quantum splitting, thus suggesting which one are likely to be TLS.
+The idea of this project is to use *machine learning* to **speed up** the exploration of the landscape of glassy materials or slow dynamics.
+State-to-state transitions like two-level systems are extremely interesting, but when the dynamics is slow they are very hard to find, and the situation is even worse for glassy systems, characterized by an exponential number of states.
+The problem is that often the trajectory of the system do not explore directly the state-to-state transition during the limited observation time.
+The ML model that we propose constructs all the pairs of states and rapidly predicts if the specific transition needs further investigation, thus significantly reducing the computational load. 
+
+inherent structures (IS) combining the provided IS and predict in <img src="https://latex.codecogs.com/svg.image?10^{-5}" /> seconds their quantum splitting, thus suggesting which one are likely to be TLS.
 
 
 ## Installation
@@ -38,10 +41,7 @@ git clone https://github.com/SCiarella/autogluon
 cd autogluon && ./full_install.sh
 ```
 
----
-**NOTE**
-
-If you are a MacOS user you need to manually install the correct version of LibOMP via:
+> **_NOTE_**:  If you are a MacOS user you need to manually install the correct version of LibOMP via:
 ```
 # brew install wget
 wget https://raw.githubusercontent.com/Homebrew/homebrew-core/fb8323f2b170bd4ae97e1bac9bf3e2983af3fdb0/Formula/libomp.rb
