@@ -1,7 +1,6 @@
 import numpy as np
 import glob
 import math
-import gzip
 import io
 import os
 import sys
@@ -10,29 +9,28 @@ import pickle
 import pandas as pd
 import autogluon as ag
 from autogluon.tabular import TabularDataset, TabularPredictor
-from sklearn.model_selection import train_test_split
 import time
 import multiprocess as mp
 import myparams
 
 
-# This code takes all the available data (results from the NEB) and if they are more than the data that we already used to train the model, we retrain it 
+# This code takes all the available data and retrain the ML model according to the iterative training procedure 
 
 
 if __name__ == "__main__":
     M = myparams.M
-    T = myparams.T
-    Tlabel = str(T).replace('.','')
+    In_file = myparams.In_file
+    In_label = In_file.split('/')[-1]).split('.')[0]
     useNEB4training = myparams.useNEB4training
-    print('\n*** Requested to train the dw classifier at T={} (M={})'.format(T,M))
+    print('\n*** Requested to train the classifier from {}'.format(In_file))
     ndecimals=10
     rounding_error=10**(-1*(ndecimals+1))
-    model_path='MLmodel/dw-classification-M{}-T{}'.format(M,Tlabel)
+    model_path='MLmodel/classification-{}'.format(In_label)
     
     # *************
     # First I load the data that the classifier has already used for its training 
     try:
-        used_data = pd.read_feather('MLmodel/data-used-by-dwclassifier-M{}-T{}.feather'.format(M,Tlabel))
+        used_data = pd.read_feather('MLmodel/data-used-by-classifier-{}.feather'.format(In_label))
     except:
         print('First time training the classifier')
         used_data = pd.DataFrame()
