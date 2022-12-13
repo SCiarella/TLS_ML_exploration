@@ -1,9 +1,23 @@
-# TLS landscape exploration
+<img src="./fig.png" width="1100" />
 
-### A machine learning package by Simone Ciarella
+# Finding two-level systems in glasses through machine learning
+
+*by Simone Ciarella, Dmytro Khomenko, Ludovic Berthier, Felix C. Mocanu, David R. Reichman, Camille Scalliet and Francesco Zamponi*
+  
+Paper link: [**arXiv: 2212.05582**](https://arxiv.org/abs/2212.05582)
+
+Two-level systems (TLS) are rare quantum tunneling defects which govern the physics of glasses at very low temperature. Because of their extremely low density, it is very hard to directly identify them in computer simulations of model glasses. We introduce a machine learning approach to efficiently explore the potential energy landscape of glass models and identify two-level tunneling defects. We design an algorithm that is able to rapidly predict the quantum splitting between any two amorphous configurations produced by classical simulations. This in turn allows us to shift the computational effort towards the collection and identification of a larger number of TLS, rather than the useless characterization of non-tunneling defects which are much more abundant. Finally, we interpret our machine learning model to understand how TLS are identified and characterized, thus giving physical insight into the features responsible for their presence.
+
+In this repository we share the code used to produce the main findings of the paper
+
+---
+  
+
+## State-to-state transitions with machine learning
+
 [**Installation**](#Installation)
 | [**Quick run**](#Quick-run)
-| [**Paper**](https://arxiv.org/abs/2212.05582)
+| [**Reproduce TLS results**](https://arxiv.org/abs/2212.05582)
 
 
 
@@ -12,7 +26,7 @@ In particular two-level systems (TLS) are extremely interesting, but hard to fin
 This program is able to construct all the pairs of inherent structures (IS or energy minima) combining the provided IS and predict in <img src="https://latex.codecogs.com/svg.image?10^{-5}" /> seconds their quantum splitting, thus suggesting which one are likely to be TLS.
 
 
-# Installation
+## Installation
 
 To install all the prerequired packages from a fresh conda environment run the following
 ```
