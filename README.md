@@ -62,7 +62,7 @@ The package is already ready to run and it just needs your new data.
 
 ## Overview
 
-The repository consist in a series of python codes named `step[1-N].py` . 
+The repository consist in a series of python codes named `[A-G]_*.py` . 
 
 In brief, each of them has the following task:
 * **A**\*.py:  constructs all the pairs of minima (a version for binary file format is also available)
