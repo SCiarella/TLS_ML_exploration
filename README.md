@@ -9,7 +9,7 @@ Paper link: [**arXiv: 2212.05582**](https://arxiv.org/abs/2212.05582)
 Two-level systems (TLS) are rare quantum tunneling defects which govern the physics of glasses at very low temperature. Because of their extremely low density, it is very hard to directly identify them in computer simulations of model glasses. We introduce a machine learning approach to efficiently explore the potential energy landscape of glass models and identify two-level tunneling defects. We design an algorithm that is able to rapidly predict the quantum splitting between any two amorphous configurations produced by classical simulations. This in turn allows us to shift the computational effort towards the collection and identification of a larger number of TLS, rather than the useless characterization of non-tunneling defects which are much more abundant. Finally, we interpret our machine learning model to understand how TLS are identified and characterized, thus giving physical insight into the features responsible for their presence.
 
 ---
-*In this repository we share the code used to produce the main findings of the paper. This approach can be easily generalized to study other state-to-state transitions*
+*In this repository we share the code used to produce the main findings of the paper. We also show step by step how this approach can be generalized to study other state-to-state transitions.*
 
 ---
   
@@ -77,11 +77,12 @@ In brief, each of them has the following task:
 Those codes run using the content of the MLmodel directory.
 Let's discuss step by step this procedure, using as example the TLS identification problem
 
-#### Step 0: data collection and preprocessing
+#### Step 0: Data collection and preprocessing
 
 The first step of the procedure consist in collecting the relevant input features for the different pairs of states.
 In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD] and contains the input features discussed in the paper.
-This database will contain all the info
+The input database is expected to have the following structure:
+ 
 |              |feature 1| feature 2| feature 3| ... |
 |--------------|---------|----------|----------|-----|
 |pair $i_1 j_1$|         |          |          |     |
@@ -89,6 +90,20 @@ This database will contain all the info
 |...           |         |          |          |     |
 |pair $i_N j_N$|         |          |          |     |
 
+Notice that the database does not contain the output feature (i.e. the quantum splitting), because we do not know its value for all the pairs and the goal of this procedure is to calculate it only for a small selected groups of pairs.
+For a different problem than the one we discuss, we suggest to start with the inclusion of additional descriptors such as [SOAP](https://singroup.github.io/dscribe/1.0.x/tutorials/descriptors/soap.html) or [bond orientational order parameters](https://pyscal.org/en/latest/examples/03_steinhardt_parameters.html).
+
+
+#### Step 1: Training the classifier
+Next we train the model that has to filter pairs 
+
+
+
+
+| :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|
+|--------------|:------------------------------------------------------------------------------------------------------------------------------|
+...
+----
 
 The other directories present in the project are the following:
 
