@@ -100,7 +100,7 @@ For a different problem than the one we discuss, we suggest to start with the in
 #### Step 1: Training the classifier
 
 Next we train the classifier. The role of the classifier is to exclude pairs that are evidently not in the target group. In our example of TLS search we know that a non-DW pair can not form a TLS, so we separate them a priori. 
-In addition to the input file containing all the features, step 1 makes use of a pretraining set for size $K_0$ for the iterative training specified as `myparams.pretraining_classifier`.
+In addition to the input file containing all the features, step 1 makes use of a pretraining set for size $K_0$ for the iterative training specified as `myparams.pretraining_classifier`, that has to be placed in the `MLmodel/` directory.
 The pretraining file contains the following information:
 
 |              |feature 1|  ... | feature $N_f$ | is in class to exclude ? |
@@ -111,9 +111,9 @@ The pretraining file contains the following information:
 |pair $i_N j_N$|         |      |               |           {0,1}          |
 
 where the additional binary variable is set to $1$ if the pair is a good candidate for the target search (i.e. a DW), and $0$ if not.
-This will be the base for the initial training. Notice that it is also possible to train the model a single time and already achieve good performance, if $K_0$ is large enough (<img src="https://latex.codecogs.com/svg.image?>10^{4}" /> pairs) and the sample is representative.
+This will be the base for the initial training. Notice that it is also possible to train the model a single time and already achieve good performance, if $K_0$ is large enough $10^4$ $10**4$ (<img src="https://latex.codecogs.com/svg.image?>10^4" /> pairs) and the sample is representative.
 
-Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the user has to set `myparameters.use_new_calculations` to allow the program to include in its training set the new pairs that have been calculated during the iterative procedure.
+Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the program needs to include in its training set the new pairs that have been calculated during the iterative procedure. This can be done by specifying in `myparams.calculations_classifier` the name of the file that lists the results from the exact calculations over the pairs that have been suggested during the previous step of iterative training. This file has to be located in the directory `exact_calculations/In_file_label/`, where the subdirectory In_file_label corresponds to `myparams.In_file` without its extension `.*` . Finally, `myparams.calculations_classifier` has to contain   
  
 
 
