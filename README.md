@@ -103,15 +103,17 @@ Next we train the classifier. The role of the classifier is to exclude pairs tha
 In addition to the input file containing all the features, step 1 makes use of a pretraining set for size $K_0$ for the iterative training specified as `myparams.pretraining_classifier`.
 The pretraining file contains the following information:
 
-|              |feature 1| feature 2| ... | feature $N_f$ | is in class to exclude ? |
-|--------------|---------|----------|-----|---------------|:------------------------:|
-|pair $i_1 j_1$|         |          |     |               |           {0,1}          |
-|pair $i_2 j_1$|         |          |     |               |           {0,1}          |
-|...           |         |          |     |               |           ...            |
-|pair $i_N j_N$|         |          |     |               |           {0,1}          |
+|              |feature 1|  ... | feature $N_f$ | is in class to exclude ? |
+|--------------|---------|------|---------------|:------------------------:|
+|pair $i_1 j_1$|         |      |               |           {0,1}          |
+|pair $i_2 j_1$|         |      |               |           {0,1}          |
+|...           |         |      |               |           ...            |
+|pair $i_N j_N$|         |      |               |           {0,1}          |
 
+where the additional binary variable is set to $1$ if the pair is a good candidate for the target search (i.e. a DW), and $0$ if not.
+This will be the base for the initial training. Notice that it is also possible to train the model a single time and already achieve good performance, if $K_0$ is large enough ($>10^4$ pairs) and the sample is representative.
 
- Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the user has to set `myparameters.use_new_calculations` to allow the program to include in its training set the new pairs that have been calculated during the iterative procedure.
+Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the user has to set `myparameters.use_new_calculations` to allow the program to include in its training set the new pairs that have been calculated during the iterative procedure.
  
 
 
