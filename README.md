@@ -111,7 +111,7 @@ The pretraining file contains the following information:
 |pair $i_N j_N$|         |      |               |           {0,1}          |
 
 where the additional binary variable is set to $1$ if the pair is a good candidate for the target search (i.e. a DW), and $0$ if not.
-This will be the base for the initial training. Notice that it is also possible to train the model a single time and already achieve good performance, if $K_0$ is large enough ($>10^4$ pairs) and the sample is representative.
+This will be the base for the initial training. Notice that it is also possible to train the model a single time and already achieve good performance, if $K_0$ is large enough (<img src="https://latex.codecogs.com/svg.image?>10^{4}" /> pairs) and the sample is representative.
 
 Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the user has to set `myparameters.use_new_calculations` to allow the program to include in its training set the new pairs that have been calculated during the iterative procedure.
  
@@ -121,6 +121,8 @@ Furthermore, if the process is at any $i>0$ reiteration of the iterative trainin
 
 | :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|
 |--------------|:------------------------------------------------------------------------------------------------------------------------------|
+
+
 ...
 ----
 
