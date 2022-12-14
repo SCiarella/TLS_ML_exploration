@@ -26,6 +26,10 @@ if __name__ == "__main__":
     if ndecimals>0:
         rounding_error=10**(-1*(ndecimals+1))
     model_path='MLmodel/classification-{}'.format(In_label)
+
+    calc_dirname = 'exact_calculations/{}'.format(In_label) 
+    if not os.path.exists(calc_dirname):
+        os.makedirs(calc_dirname, exist_ok=True)
     
     # *************
     # First I load the data that the classifier has already used for its training 
