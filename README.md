@@ -83,15 +83,15 @@ Let's discuss step by step this procedure, using as example the TLS identificati
 
 The first step of the procedure consist in collecting the relevant input features for the different pairs of states.
 In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD] and contains the input features discussed in the paper.
-The user can then specify the correct input file in `myparams.In_file` .
+The user can then specify the correct input file name as `myparams.In_file` .
 The input database is expected to have the following structure:
  
-|              |feature 1| feature 2| feature 3| ... |
-|--------------|---------|----------|----------|-----|
-|pair $i_1 j_1$|         |          |          |     |
-|pair $i_2 j_1$|         |          |          |     |
-|...           |         |          |          |     |
-|pair $i_N j_N$|         |          |          |     |
+|              |feature 1| feature 2| ... | feature $N_f$ |
+|--------------|---------|----------|-----|---------------|
+|pair $i_1 j_1$|         |          |     |               |
+|pair $i_2 j_1$|         |          |     |               |
+|...           |         |          |     |               |
+|pair $i_N j_N$|         |          |     |               |
 
 Notice that the database does not contain the output feature (i.e. the quantum splitting), because we do not know its value for all the pairs and the goal of this procedure is to calculate it only for a small selected groups of pairs.
 For a different problem than the one we discuss, we suggest to start with the inclusion of additional descriptors such as [SOAP](https://singroup.github.io/dscribe/1.0.x/tutorials/descriptors/soap.html) or [bond orientational order parameters](https://pyscal.org/en/latest/examples/03_steinhardt_parameters.html).
@@ -100,7 +100,19 @@ For a different problem than the one we discuss, we suggest to start with the in
 #### Step 1: Training the classifier
 
 Next we train the classifier. The role of the classifier is to exclude pairs that are evidently not in the target group. In our example of TLS search we know that a non-DW pair can not form a TLS, so we separate them a priori. 
-In addition to the input 
+In addition to the input file containing all the features, step 1 makes use of a pretraining set for size $K_0$ for the iterative training specified as `myparams.pretraining_classifier`.
+The pretraining file contains the following information:
+ 
+|              |feature 1| feature 2| ... | feature $N_f$ | is in class to exclude ? |
+|--------------|---------|----------|-----|---------------|--------------------------|
+|pair $i_1 j_1$|         |          |     |               |           {0,1}          |
+|pair $i_2 j_1$|         |          |     |               |           {0,1}          |
+|...           |         |          |     |               |           ...            |
+|pair $i_N j_N$|         |          |     |               |           {0,1}          |
+
+
+ Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the user has to set `myparameters.use_new_calculations` to allow the program to include in its training set the new pairs that have been calculated during the iterative procedure.
+ 
 
 
 

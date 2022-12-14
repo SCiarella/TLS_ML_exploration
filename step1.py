@@ -18,7 +18,6 @@ import myparams
 
 
 if __name__ == "__main__":
-    M = myparams.M
     In_file = myparams.In_file
     In_label = In_file.split('/')[-1]).split('.')[0]
     use_new_calculations = myparams.use_new_calculations
@@ -64,7 +63,7 @@ if __name__ == "__main__":
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
     try:
-        pretrain_df = pd.read_feather('MLmodel/pretraining-dwclassifier-M{}-T{}.feather'.format(M,Tlabel))
+        pretrain_df = pd.read_feather('MLmodel/{}'.format(myparams.pretraining_classifier))
 
         print(pretrain_df.sort_values('Delta_E',ascending=False))
     except:
