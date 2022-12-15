@@ -104,9 +104,6 @@ if __name__ == "__main__":
                     sys.exit()
                 elif len(a)==1:
                     worker_df = pd.concat([worker_df,a])
-#                else:
-#                    print('\nWARNING: we do not have {}'.format(element))
-#                    sys.exit()
             return worker_df
     
         print('collecting info for NEB pairs')
@@ -188,7 +185,6 @@ if __name__ == "__main__":
 
     
     
-    
     # **************   TRAIN
     #   Notice that autogluon offer different 'presets' option to maximize precision vs data-usage vs time
     #   if you are not satisfied with the results here, you can try different 'presets' option or build your own
@@ -210,6 +206,6 @@ if __name__ == "__main__":
     
     
     # store
-    new_training_df.reset_index().drop(columns='index').to_feather('MLmodel/data-used-by-dwclassifier-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
-    training_set.reset_index().drop(columns='index').to_feather('MLmodel/dw-classifier-training-set-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
-    validation_set.reset_index().drop(columns='index').to_feather('MLmodel/dw-classifier-validation-set-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
+    new_training_df.reset_index().drop(columns='index').to_feather('MLmodel/data-used-by-classifier-{}.feather'.format(In_label), compression='zstd')
+    training_set.reset_index().drop(columns='index').to_feather('MLmodel/classifier-training-set-{}.feather'.format(In_label), compression='zstd')
+    validation_set.reset_index().drop(columns='index').to_feather('MLmodel/classifier-validation-set-{}.feather'.format(In_label), compression='zstd')

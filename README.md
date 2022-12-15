@@ -113,10 +113,13 @@ The pretraining file contains the following information:
 where the additional binary variable is set to $1$ if the pair is a good candidate for the target search (i.e. a DW), and $0$ if not.
 This will be the base for the initial training. Notice that it is also possible to train the model a single time and already achieve good performance, if $K_0$ is large enough (at least $10^4$ pairs for the DW) and the sample is representative.
 
-Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the program needs to include in its training set the new pairs that have been calculated during the iterative procedure. This can be done by specifying in `myparams.calculations_classifier` the name of the file that lists the results from the exact calculations over the pairs that have been suggested during the previous step of iterative training. This file has to be located in the directory `exact_calculations/In_file_label/`, where the subdirectory In_file_label corresponds to `myparams.In_file` without its extension `.*` . Finally, `myparams.calculations_classifier` has to contain   
- 
+Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the program needs to include in its training set the new pairs that have been calculated during the iterative procedure. This can be done by specifying in `myparams.calculations_classifier` the name of the file that lists the results from the exact calculations over the pairs that have been suggested during the previous step of iterative training. This file has to be located in the directory `exact_calculations/In_file_label/`, where the subdirectory In_file_label corresponds to `myparams.In_file` without its extension `.*` . 
 
 
+#### Step 2: Classifier
+
+The following step is to apply the classifier to the full collection of pairs in order to identify the good subgroup that can contain interesting pairs. 
+To do so, the user has to run `step2.py`
 
 
 | :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|

@@ -20,13 +20,6 @@ import dask.dataframe as dd
 
 # The absolute position is not interesting, so I only report the distance from particle 0
 # notice that you have to evalaute the distance using PBC !
-Lhalf= 0.5 * 11.447142426
-def PBC_dist(x):
-    while x > Lhalf:
-        x-=2*Lhalf
-    while x < -Lhalf:
-        x+=2*Lhalf
-    return x
 
 def ensure_dir(filename):
     dirname = os.path.dirname(filename)
@@ -37,10 +30,9 @@ def ensure_dir(filename):
             pass
 
 if __name__ == "__main__":
-    M = myparams.M
-    T = myparams.T
-    Tlabel = str(T).replace('.','')
-    print('\n*** Requested to apply the dw classifier at T={} (M={})'.format(T,M))
+    In_file = myparams.In_file
+    In_label = In_file.split('/')[-1].split('.')[0]
+    print('\n*** Requested to apply the classifier to all the pairs in {}'.format(In_file))
 
     ensure_dir('output_ML/T{}/'.format(T))
     ensure_dir('NEB_calculations/T{}/'.format(T))
