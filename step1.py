@@ -87,7 +87,7 @@ if __name__ == "__main__":
         elements_per_worker=20
         chunks=[class_0_pairs.iloc[i:i + elements_per_worker] for i in range(0, len(class_0_pairs), elements_per_worker)]
         n_chunks = len(chunks)
-        print('We are going to submit {} chunks for the non dw \n'.format(n_chunks))
+        print('\nWe are going to submit {} chunks for the non dw'.format(n_chunks))
         
         
         def process_chunk(chunk):
@@ -125,7 +125,7 @@ if __name__ == "__main__":
         # *** now get the dw using the same function
         chunks=[class_1_pairs.iloc[i:i + elements_per_worker] for i in range(0, len(class_1_pairs), elements_per_worker)]
         n_chunks = len(chunks)
-        print('We are going to submit {} chunks for the dw \n'.format(n_chunks))
+        print('\nWe are going to submit {} chunks for the dw'.format(n_chunks))
         pool = mp.Pool(mp.cpu_count())
         results = pool.map(process_chunk, [chunk for chunk in chunks] )
         pool.close()
@@ -140,7 +140,6 @@ if __name__ == "__main__":
         non_dw_df = pd.DataFrame()
     
     
-    
     # *******
     # add the pretrained data (if any)
     if len(pretrain_df)>0:
@@ -151,17 +150,10 @@ if __name__ == "__main__":
     qs_df = pd.concat([dw_df,non_dw_df])
 
 
-
     # set isdw col as binary
     qs_df['class']=qs_df['class'].astype(bool)
     dw_df['class']=dw_df['class'].astype(bool)
     non_dw_df['class']=non_dw_df['class'].astype(bool)
-    qs_df['Tij']=qs_df['Tij'].astype(int)
-    dw_df['Tij']=dw_df['Tij'].astype(int)
-    non_dw_df['Tij']=non_dw_df['Tij'].astype(int)
-    qs_df['Tji']=qs_df['Tji'].astype(int)
-    dw_df['Tji']=dw_df['Tji'].astype(int)
-    non_dw_df['Tji']=non_dw_df['Tji'].astype(int)
 
     
     # This is the new training df that will be stored at the end 
@@ -178,8 +170,8 @@ if __name__ == "__main__":
     # Create a balanced subset with same number of dw and non-dw
     N = min(len(dw_df),len(non_dw_df))
     print('Having {} dw and {} non-dw, we select only {} of each for the classifier'.format(len(dw_df),len(non_dw_df),N))
-    # and pick 10percent apart for validation
-    Nval = int(0.1*N)
+    # and split a part of data for validation
+    Nval = int(myparams.validation_split*N)
     Ntrain = N -Nval
     # shuffle
     dw_df=dw_df.sample(frac=1, random_state=20, ignore_index=True)
@@ -201,14 +193,14 @@ if __name__ == "__main__":
     #   Notice that autogluon offer different 'presets' option to maximize precision vs data-usage vs time
     #   if you are not satisfied with the results here, you can try different 'presets' option or build your own
     # check which one to use
-    if myparams.Fast_dw==True:
+    if myparams.Fast_class==True:
         print('We are training in the fast way')
         presets='good_quality_faster_inference_only_refit'
     else:
         presets='high_quality_fast_inference_only_refit'
     
     # you can also change the training time
-    training_hours=myparams.qs_pred_train_hours
+    training_hours=myparams.class_train_hours
     time_limit = training_hours*60*60
 
     

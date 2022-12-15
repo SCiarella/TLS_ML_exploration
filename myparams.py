@@ -8,3 +8,4 @@ pred_train_hours=0.1
 Fast_class=False
 Fast_pred=False
 ij_decimals=10
+validation_split=0.1
