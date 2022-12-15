@@ -19,8 +19,7 @@ import myparams
 
 if __name__ == "__main__":
     In_file = myparams.In_file
-    In_label = In_file.split('/')[-1]).split('.')[0]
-    use_new_calculations = myparams.use_new_calculations
+    In_label = In_file.split('/')[-1].split('.')[0]
     print('\n*** Requested to train the classifier from {}'.format(In_file))
     ndecimals=myparams.ij_decimals
     if ndecimals>0:
@@ -43,42 +42,29 @@ if __name__ == "__main__":
     list_class_0=[]
     list_class_1=[]
     calculation_dir='./exact_calculations/{}'.format(In_label)
-    if not os.path.isfile('{}/NON-DW.txt'.format(calculation_dir)):
+    if not os.path.isfile('{}/{}'.format(calculation_dir,myparams.calculations_classifier)):
         print('\n*(!)* Notice that there are no classification data\n')
         use_new_calculations = False
     else:
-        with open('{}/NON-DW.txt'.format(calculation_dir)) as nondw_file:
-            lines = nondw_file.readlines()
-            for line in lines:
-                conf = float(line.split()[0].split('Cnf-')[-1])
-                i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
-                list_class_0.append((T,conf,i,j))
-        with open('{}/Qs_calculations.txt'.format(calculation_dir)) as dw_file:
-            lines = dw_file.readlines()
-            for line in lines:
-                conf = float(line.split()[0].split('Cnf-')[-1])
-                i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
-                list_class_1.append((T,conf,i,j))
-        print('From the NEB results we have {} non-dw and {} dw (with qs)'.format(len(list_class_0),len(list_class_1)))
+        use_new_calculations = True
+        class_0_pairs = pd.read_csv('{}/{}'.format(calculation_dir,myparams.calculations_classifier), index_col=0)
+        class_1_pairs = pd.read_csv('{}/{}'.format(calculation_dir,myparams.calculations_predictor), index_col=0)[['conf','i','j']]
+        print('From the calculation results we have {} class-0 and {} class-1'.format(len(class_0_pairs),len(class_1_pairs)))
+
+
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
-    try:
+    if os.path.isfile('MLmodel/{}'.format(myparams.pretraining_classifier)):
         pretrain_df = pd.read_feather('MLmodel/{}'.format(myparams.pretraining_classifier))
-
-        print(pretrain_df.sort_values('Delta_E',ascending=False))
-    except:
+    else:
         print('\nNotice that no pretraining is available')
         pretrain_df = pd.DataFrame()
 
     
     #************
     # * Check wether or not you should retrain the model
-    if(len(pretrain_df)+len(list_class_1)+len(list_class_0))>len(used_data):
-        print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining (both dw and non-dw)\n\t{} non-dw from NEB\n\t{} dw from NEB'.format(len(used_data),len(pretrain_df),len(list_class_0),len(list_class_1)))
+    if(len(pretrain_df)+len(class_0_pairs)+len(class_1_pairs))>len(used_data):
+        print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining (both classes)\n\t{} calculated class-0\n\t{} calculated class-1'.format(len(used_data),len(pretrain_df),len(class_0_pairs),len(class_1_pairs)))
     else:
         print('All the data available have been already used to train the model')
         sys.exit()
@@ -90,7 +76,7 @@ if __name__ == "__main__":
         # For these new NEB informations, I look for the corresponding input pair 
         # so I need to load the input features for all of them
         try:
-            all_pairs_df = pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
+            all_pairs_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
             all_pairs_df.i = all_pairs_df.i.round(ndecimals)
             all_pairs_df.j = all_pairs_df.j.round(ndecimals)
         except:
@@ -99,7 +85,7 @@ if __name__ == "__main__":
 
         # split this task between parallel workers
         elements_per_worker=20
-        chunks=[list_class_0[i:i + elements_per_worker] for i in range(0, len(list_class_0), elements_per_worker)]
+        chunks=[class_0_pairs.iloc[i:i + elements_per_worker] for i in range(0, len(class_0_pairs), elements_per_worker)]
         n_chunks = len(chunks)
         print('We are going to submit {} chunks for the non dw \n'.format(n_chunks))
         
@@ -107,10 +93,12 @@ if __name__ == "__main__":
         def process_chunk(chunk):
             worker_df=pd.DataFrame()
             # I search for the given configuration
-            for element in chunk:
-                T,conf,i,j = element
+            for index, row in chunk.iterrows():
+                conf = row['conf']
+                i = row['i']
+                j = row['j']
                 # do we have it ?
-                a = all_pairs_df[(all_pairs_df['T']==T)&(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
+                a = all_pairs_df[(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
                 if len(a)>1:
                     print('Error! multiple correspondences for {}'.format(element))
                     sys.exit()
@@ -131,11 +119,11 @@ if __name__ == "__main__":
         non_dw_df=pd.DataFrame()
         for df_chunk in results:
             non_dw_df = pd.concat([non_dw_df,df_chunk])
-        non_dw_df['is_dw']=0
+        non_dw_df['class']=0
         print('Constructed the database of {} non-dw from the new pairs'.format(len(non_dw_df)))
         
         # *** now get the dw using the same function
-        chunks=[list_class_1[i:i + elements_per_worker] for i in range(0, len(list_class_1), elements_per_worker)]
+        chunks=[class_1_pairs.iloc[i:i + elements_per_worker] for i in range(0, len(class_1_pairs), elements_per_worker)]
         n_chunks = len(chunks)
         print('We are going to submit {} chunks for the dw \n'.format(n_chunks))
         pool = mp.Pool(mp.cpu_count())
@@ -144,7 +132,7 @@ if __name__ == "__main__":
         dw_df=pd.DataFrame()
         for df_chunk in results:
             dw_df = pd.concat([dw_df,df_chunk])
-        dw_df['is_dw']=1
+        dw_df['class']=1
         print('Constructed the database of {} dw from the new pairs'.format(len(dw_df)))
     else:
         print('(We are not using data from NEB, but only pretraining)') 
@@ -156,22 +144,18 @@ if __name__ == "__main__":
     # *******
     # add the pretrained data (if any)
     if len(pretrain_df)>0:
-        dw_df = pd.concat([dw_df,pretrain_df[pretrain_df['is_dw']>0]])
+        dw_df = pd.concat([dw_df,pretrain_df[pretrain_df['class']>0]])
         dw_df=dw_df.drop_duplicates()
-        non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['is_dw']<1]])
+        non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['class']<1]])
         non_dw_df=non_dw_df.drop_duplicates()
     qs_df = pd.concat([dw_df,non_dw_df])
 
-    # remove useless column
-    qs_df = qs_df.drop(columns=['T','i2','j2','index'])
-    dw_df = dw_df.drop(columns=['T','i2','j2','index'])
-    non_dw_df = non_dw_df.drop(columns=['T','i2','j2','index'])
 
 
-#    # set isdw col as binary
-    qs_df['is_dw']=qs_df['is_dw'].astype(bool)
-    dw_df['is_dw']=dw_df['is_dw'].astype(bool)
-    non_dw_df['is_dw']=non_dw_df['is_dw'].astype(bool)
+    # set isdw col as binary
+    qs_df['class']=qs_df['class'].astype(bool)
+    dw_df['class']=dw_df['class'].astype(bool)
+    non_dw_df['class']=non_dw_df['class'].astype(bool)
     qs_df['Tij']=qs_df['Tij'].astype(int)
     dw_df['Tij']=dw_df['Tij'].astype(int)
     non_dw_df['Tij']=non_dw_df['Tij'].astype(int)
@@ -222,7 +206,6 @@ if __name__ == "__main__":
         presets='good_quality_faster_inference_only_refit'
     else:
         presets='high_quality_fast_inference_only_refit'
-    #presets='best_quality'
     
     # you can also change the training time
     training_hours=myparams.qs_pred_train_hours
@@ -231,7 +214,7 @@ if __name__ == "__main__":
     
     # train
     # * I am excluding KNN because it is problematic
-    predictor = TabularPredictor(label='is_dw', path=model_path, eval_metric='accuracy').fit(TabularDataset(training_set.drop(columns=['i','j','conf'])), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
+    predictor = TabularPredictor(label='class', path=model_path, eval_metric='accuracy').fit(TabularDataset(training_set.drop(columns=['i','j','conf'])), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
     
     
     # store
