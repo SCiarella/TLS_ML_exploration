@@ -48,8 +48,7 @@ if __name__ == "__main__":
 
     
     # then load the info about all the pairs
-#    pairs_df = pd.read_csv('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
-    pairs_df = pd.read_feather('output_ML/{}/classified_{}.feather'.format(In_label,In_label)).drop(columns=['class'])
+    pairs_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
     # and format in the correct way
     pairs_df = pairs_df.round(decimals=ndecimals)
     
