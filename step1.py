@@ -39,8 +39,6 @@ if __name__ == "__main__":
         used_data = pd.DataFrame()
     
     # Then I check the exact calculations to see the if new data are available (otherwise the iterative training procedure got stuck)
-    list_class_0=[]
-    list_class_1=[]
     calculation_dir='./exact_calculations/{}'.format(In_label)
     if not os.path.isfile('{}/{}'.format(calculation_dir,myparams.calculations_classifier)):
         print('\n*(!)* Notice that there are no classification data\n')

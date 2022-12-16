@@ -16,73 +16,64 @@ import multiprocess as mp
 import myparams
 
 
-# This code takes all the available data (results from the NEB) and if they are more than the data that we already used to train the model, we retrain it 
+# This code takes all the available data and retrain the ML model according to the iterative training procedure 
 
 
 if __name__ == "__main__":
-    M = myparams.M
-    T = myparams.T
-    Tlabel = str(T).replace('.','')
-    useNEB4training = myparams.useNEB4training
-    print('\n*** Requested to train the qs predictor at T={} (M={})'.format(T,M))
-    ndecimals=10
-    rounding_error=10**(-1*(ndecimals+1))
-    model_path='MLmodel/qs-regression-M{}-T{}'.format(M,Tlabel)
+    In_label = myparams.In_file.split('/')[-1].split('.')[0]
+    class_1_file = 'output_ML/{}/classified_{}.csv'.format(In_label,In_label)
+    print('\n*** Requested to train the predictor from {}'.format(class_1_file))
+    ndecimals=myparams.ij_decimals
+    if ndecimals>0:
+        rounding_error=10**(-1*(ndecimals+1))
+    model_path='MLmodel/prediction-{}'.format(In_label)
     
     # *************
     # First I load the data that the predictor has already used for its training 
     try:
-        used_data = pd.read_feather('MLmodel/data-used-by-qspredictor-M{}.feather'.format(M))
+        used_data = pd.read_feather('MLmodel/data-used-by-predictor-{}.feather'.format(In_label))
     except:
-        print('First time training the qs predictor')
+        print('First time training the predictor')
         used_data = pd.DataFrame()
     
-    # Then I check the NEB calculations to see the what new data are available 
-    list_neb_qs=[]
-    Tdir='./NEB_calculations/T{}'.format(T)
-    if not os.path.isfile('{}/NON-DW.txt'.format(Tdir)):
-        print('\n*(!)* Notice that there are no NEB data\n')
-        useNEB4training = False
+    # Then I check the calculations to see the what new data are available 
+    calculation_dir='./exact_calculations/{}'.format(In_label)
+    if not os.path.isfile('{}/{}'.format(calculation_dir,myparams.calculations_predictor)):
+        print('\n*(!)* Notice that there are no prediction data\n')
+        use_new_calculations = False
     else:
-        with open('{}/Qs_calculations.txt'.format(Tdir)) as qs_file:
-            lines = qs_file.readlines()
-            for line in lines:
-                conf = int(line.split()[0].split('Cnf-')[-1])
-                i,j = line.split()[1].split('_')
-                i = round(float(i),ndecimals)
-                j = round(float(j),ndecimals)
-                qs = float(line.split()[2])
-                list_neb_qs.append((T,conf,i,j,qs))
-        print('From the NEB results we have {} pairs for which we know the qs'.format(len(list_neb_qs)))
-    
+        use_new_calculations = True
+        calculated_pairs = pd.read_csv('{}/{}'.format(calculation_dir,myparams.calculations_predictor), index_col=0)
+        print('From the calculation results we have {} pairs for which we evaluated the target feature'.format(len(calculated_pairs)))
+
     
     # then load the info about all the pairs
-    pairs_df = pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
+#    pairs_df = pd.read_csv('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
+    pairs_df = pd.read_feather('output_ML/{}/classified_{}.feather'.format(In_label,In_label)).drop(columns=['class'])
     # and format in the correct way
-    pairs_df = pairs_df.round(decimals=10)
+    pairs_df = pairs_df.round(decimals=ndecimals)
     
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
     try:
-        pretrain_df = pd.read_feather('MLmodel/pretraining-qspredictor-M{}-T{}.feather'.format(M,Tlabel))
+        pretrain_df = pd.read_feather('MLmodel/{}'.format(myparams.pretraining_predictor))
     except:
         print('\nNotice that no pretraining is available')
         pretrain_df = pd.DataFrame()
     
     #************
     # * Check wether or not you should retrain the model
-    if(len(pretrain_df)+len(list_neb_qs))>len(used_data):
-        print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining \n\t{} from NEB'.format(len(used_data),len(pretrain_df),len(list_neb_qs)))
+    if(len(pretrain_df)+len(calculated_pairs))>len(used_data):
+        print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining \n\t{} from calculations'.format(len(used_data),len(pretrain_df),len(calculated_pairs)))
     else:
         print('All the data available have been already used to train the model')
         sys.exit()
     
     # If we are not exited, it means that we have more qs data to use to retrain the model
-    
-    if useNEB4training:
+    if use_new_calculations:        
         # split this task between parallel workers
         elements_per_worker=100
-        chunks=[list_neb_qs[i:i + elements_per_worker] for i in range(0, len(list_neb_qs), elements_per_worker)]
+        chunks=[calculated_pairs.iloc[i:i + elements_per_worker] for i in range(0, len(calculated_pairs), elements_per_worker)]
         n_chunks = len(chunks)
         print('We are going to submit {} chunks to get the data\n'.format(n_chunks))
         
@@ -90,18 +81,20 @@ if __name__ == "__main__":
         def process_chunk(chunk):
             worker_df=pd.DataFrame()
             # I search for the given configuration
-            for element in chunk:
-                T,conf,i,j,qs = element
-                a = pairs_df[(pairs_df['T']==T)&(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))].copy()
+            for index, row in chunk.iterrows():
+                conf = row['conf']
+                i = row['i']
+                j = row['j']
+                target = row['out']
+                a = pairs_df[(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))].copy()
                 if len(a)>1:
                     print('Error! multiple correspondences in dw')
                     sys.exit()
                 elif len(a)==1:
-                    a['quantum_splitting']=qs
+                    a['target_feature']=target
                     worker_df = pd.concat([worker_df,a])
                 else:
-                    print('Error: we do not have {}'.format(element))
-#                    sys.exit()
+                    print('\nWarning: we do not have {} in class-1'.format(row))
             return worker_df
             
         print('collecting info for NEB pairs')
@@ -111,30 +104,27 @@ if __name__ == "__main__":
         results = pool.map(process_chunk, [chunk for chunk in chunks] )
         pool.close()
         # and add all the new df to the final one
-        qs_df=pd.DataFrame()
+        out_df=pd.DataFrame()
         missed_dw=0
         for df_chunk in results:
-            qs_df= pd.concat([qs_df,df_chunk])
-        print('From the NEB calculations I constructed a database of {} pairs for which I have the input informations.'.format(len(qs_df)))
+            out_df= pd.concat([out_df,df_chunk])
+        print('\n\nFrom the calculations I constructed a database of {} pairs for which I have the input informations.'.format(len(out_df)))
     else:
-        print('(We are not using data from NEB, but only pretraining)') 
-        qs_df = pd.DataFrame()
+        print('(We are not using data from calculations, but only pretraining)') 
+        out_df = pd.DataFrame()
     
     
     # *******
     # add the pretrained data (if any)
     if len(pretrain_df)>0:
-        qs_df = pd.concat([qs_df,pretrain_df])
-        qs_df = qs_df.drop_duplicates()
-        qs_df = qs_df.reset_index(drop=True)
-
-    # remove useless column
-    qs_df = qs_df.drop(columns=['T','i2','j2','index'])
-    print(qs_df)
+        out_df = pd.concat([out_df,pretrain_df])
+        out_df = out_df.drop_duplicates()
+        out_df = out_df.reset_index(drop=True)
+    print(out_df)
 
     
     # This is the new training df that will be stored at the end 
-    new_training_df = qs_df.copy()
+    new_training_df = out_df.copy()
     if len(new_training_df)<=len(used_data):
         print('\n(!) After removing the duplicates it appears that the number of data has not increased since the last time')
         if os.path.isfile('{}/predictor.pkl'.format(model_path)):
@@ -146,13 +136,14 @@ if __name__ == "__main__":
     
 
     # ************
+    # Optional step to normalize small numbers
     # *** I do (-1) log of the data such that the values are closer and their weight is more balanced in the fitness
-    new_training_df['10tominusquantum_splitting'] = new_training_df['quantum_splitting'].apply(lambda x: -np.log10(x))
+    new_training_df['10tominus_tg'] = new_training_df['target_feature'].apply(lambda x: -np.log10(x))
     
     
-    # Pick 10percent of this pairs for validation
+    # Pick a part of this pairs for validation
     N = len(new_training_df)
-    Nval = int(0.1*N)
+    Nval = int(myparams.validation_split*N)
     Ntrain = N -Nval
     # shuffle
     new_training_df=new_training_df.sample(frac=1, random_state=20, ignore_index=True)
@@ -167,24 +158,26 @@ if __name__ == "__main__":
     #   Notice that autogluon offer different 'presets' option to maximize precision vs data-usage vs time
     #   if you are not satisfied with the results here, you can try different 'presets' option or build your own
     # check which one to use
-    presets='high_quality_fast_inference_only_refit'
-    #presets='best_quality'
-    #presets='good_quality_faster_inference_only_refit'
+    if myparams.Fast_pred==True:
+        print('We are training in the fast way')
+        presets='good_quality_faster_inference_only_refit'
+    else:
+        presets='high_quality_fast_inference_only_refit'
     
     # you can also change the training time
-    training_hours=myparams.qs_pred_train_hours
+    training_hours=myparams.pred_train_hours
     time_limit = training_hours*60*60
     
     # and define a weight=1/qs in order to increase the precision for the small qs 
-    training_set['weights'] = (training_set['quantum_splitting']) ** (-1)
+    training_set['weights'] = (training_set['target_feature']) ** (-1)
     
     # train
     # * I am excluding KNN because it is problematic
     # * Convert to float to have optimal performances!
-    predictor = TabularPredictor(label='10tominusquantum_splitting', path=model_path, eval_metric='mean_squared_error', sample_weight='weights' , weight_evaluation=True).fit(TabularDataset(training_set.drop(columns=['i','j','conf','quantum_splitting'])), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
+    predictor = TabularPredictor(label='10tominus_tg', path=model_path, eval_metric='mean_squared_error', sample_weight='weights' , weight_evaluation=True).fit(TabularDataset(training_set.drop(columns=['i','j','conf','target_feature'])), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
     
     
     # store
-    new_training_df.reset_index().to_feather('MLmodel/data-used-by-qspredictor-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
-    training_set.reset_index().to_feather('MLmodel/qs-prediction-training-set-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
-    validation_set.reset_index().to_feather('MLmodel/qs-prediction-validation-set-M{}-T{}.feather'.format(M,Tlabel), compression='zstd')
+    new_training_df.reset_index().drop(columns='index').to_feather('MLmodel/data-used-by-predictor-{}.feather'.format(In_label), compression='zstd')
+    training_set.reset_index().drop(columns='index').to_feather('MLmodel/predictor-training-set-{}.feather'.format(In_label), compression='zstd')
+    validation_set.reset_index().drop(columns='index').to_feather('MLmodel/predictor-validation-set-{}.feather'.format(In_label), compression='zstd')

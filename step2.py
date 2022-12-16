@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     
     # *************
-    # (3) apply the dw Filter 
+    # (3) apply the classifier 
     start= time.time()
     classifier_save_path='MLmodel/classification-{}'.format(In_label)
     # check if the model is there
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         print('\nUsing the DW filter trained in {}'.format(classifier_save_path))
     
     print('\n* Classifier loading',flush=True)
-    dwclassifier = TabularPredictor.load(classifier_save_path) 
+    classifier = TabularPredictor.load(classifier_save_path) 
     
     npairs = len(new_df)
     chunk_size=1e6
@@ -73,16 +73,16 @@ if __name__ == "__main__":
     print('Classification starting:',flush=True)
 
     filtered_chunks = []
-    filtered_dw = pd.DataFrame()
+    filtered_df = pd.DataFrame()
     for chunk_id, chunk in enumerate(df_chunks):
         print('\n* Classifying part {}/{}'.format(chunk_id+1,nchunks),flush=True)
-        df_chunks[chunk_id]['is_dw'] = dwclassifier.predict(chunk.drop(columns=['conf','i','j']))
-        # I only keep the predicted dw
-        filtered_dw = pd.concat([filtered_dw,df_chunks[chunk_id][df_chunks[chunk_id]['is_dw']>0]])
-        print('done in {} sec (collected up to {} dw) '.format(time.time() -start, len(filtered_dw)))
+        df_chunks[chunk_id]['class'] = classifier.predict(chunk.drop(columns=['conf','i','j']))
+        # I only keep the predicted class-1
+        filtered_df = pd.concat([filtered_df,df_chunks[chunk_id][df_chunks[chunk_id]['class']>0]])
+        print('done in {} sec (collected up to {} class-1) '.format(time.time() -start, len(filtered_df)))
     timeclass=time.time()-start
 
-    print('From the {} pairs, only {} are classified as dw (in {} sec = {} sec per pair), so {} are non-dw.'.format(npairs, len(filtered_dw), timeclass, timeclass/npairs, npairs-len(filtered_dw)))
+    print('From the {} pairs, only {} are in class-1 (in {} sec = {} sec per pair), so {} are class-0.'.format(npairs, len(filtered_df), timeclass, timeclass/npairs, npairs-len(filtered_df)))
     
-    filtered_df_name='output_ML/{}/classified_{}.csv'.format(In_label,In_label)
-    filtered_dw.to_csv(filtered_df_name, index=False)
+    filtered_df_name='output_ML/{}/classified_{}.feather'.format(In_label,In_label)
+    filtered_df.reset_index(drop=True).to_feather(filtered_df_name, compression='zstd')
