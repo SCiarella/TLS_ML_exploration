@@ -44,6 +44,7 @@ if __name__ == "__main__":
 
     # *************
     # (2) (optionally) remove pairs with a classic energy splitting which is too large
+    print(new_df)
     new_df = new_df[new_df[r'$\Delta E$']<0.1]
     print('*-> We decide to keep only the ones with Delta_E<{}, which are {}'.format(0.1, len(new_df)))
 
@@ -75,8 +76,7 @@ if __name__ == "__main__":
     filtered_dw = pd.DataFrame()
     for chunk_id, chunk in enumerate(df_chunks):
         print('\n* Classifying part {}/{}'.format(chunk_id+1,nchunks),flush=True)
-        df_chunks[chunk_id]['is_dw'] = dwclassifier.predict(chunk.drop(columns=['conf','i','j','i2','j2','T']))
-        #df_chunks[chunk_id]['is_dw'] = dwclassifier.predict(chunk.drop(columns=['conf','i','j']))
+        df_chunks[chunk_id]['is_dw'] = dwclassifier.predict(chunk.drop(columns=['conf','i','j']))
         # I only keep the predicted dw
         filtered_dw = pd.concat([filtered_dw,df_chunks[chunk_id][df_chunks[chunk_id]['is_dw']>0]])
         print('done in {} sec (collected up to {} dw) '.format(time.time() -start, len(filtered_dw)))
@@ -84,5 +84,5 @@ if __name__ == "__main__":
 
     print('From the {} pairs, only {} are classified as dw (in {} sec = {} sec per pair), so {} are non-dw.'.format(npairs, len(filtered_dw), timeclass, timeclass/npairs, npairs-len(filtered_dw)))
     
-    filtered_df_name='output_ML/T{}/DW_T{}.csv'.format(T,T)
+    filtered_df_name='output_ML/{}/classified_{}.csv'.format(In_label,In_label)
     filtered_dw.to_csv(filtered_df_name, index=False)
