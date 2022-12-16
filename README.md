@@ -162,8 +162,8 @@ The supporting file `myparams.py` allows the user to set the correct hyperpamete
 * **pretraining_predictor**: name of the pretraining file for the predictor
 * **calculations_classifier**: name of the file containing the list of pairs calculated in class-0
 * **calculations_predictor**: name of the file containing the calculation of the target feature
-* **class_train_hours**: training time in hours for the classifier
-* **pred_train_hours**: training time in hours for the predictor
+* *class_train_hours*: training time in hours for the classifier
+* *pred_train_hours*: training time in hours for the predictor
 * **Fast_class**: if True use a lighter ML model for classification, with worse performance but better inference time 
 * **Fast_pred**: if True use a lighter ML model for prediction, with worse performance but better inference time
 * **ij_decimals**: number of significant digits to identify the states. If they are labeled using an integer number you can set this to 0
