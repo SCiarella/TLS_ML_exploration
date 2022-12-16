@@ -143,7 +143,15 @@ Furthermore, if the process is at any $i>0$ reiteration of the iterative trainin
 
 #### Step 4: Predicting the target feature
 
-The final step of the iteration is to predict the target feature. 
+The final step of the iteration is to predict the target feature. Running `step4.py` will perform this prediction, and produce as output two files:
+```
+output_ML/{In_file_label}/predicted_{In_file_label}_allpairs.csv 	
+```
+containing the prediction of `target_feature` for all the pairs available in `myparams.In_file`, and
+```
+output_ML/{In_file_label}/predicted_{In_file_label}_newpairs.csv 	
+```
+that reports the predicted `target_feature` only for the pairs for which the exact calculation is not done. This is useful because the iterative training procedure has to pick the next $K_i$ candidates from this restricted list, in order to avoid repetitions.
 
 
 #### Iterative training
@@ -159,41 +167,7 @@ The final step of the iteration is to predict the target feature.
 ...
 ----
 
-The other directories present in the project are the following:
 
-#### Configurations/*
-This contains the IS obtained from the simulations. In order for the codes to work, its content has to respect the following structure:
-```
-Configurations/minima/T{T_i}/Cnf-{xxx}/{energy_i}.conf.txt
-```
-or alternatively if you want to use binary file, they should follow this conventions 
-```
-Configurations/minima/T{T_i}/Cnf-{xxx}/{energy_i}.conf
-```
-where the `.txt` has been dropped.
-
-
-#### NEB_calculations/*
-This directory contains the *exact* results of the NEB calculations. We need to collect them for two reasons: 
-* to validate the AI predictions 
-* to re-train the models
-The content of the directory has to respect the following convention:
-```
-NEB_calculations/T{T_i}/NON-DW.txt   		#(list of non DW)
-NEB_calculations/T{T_i}/Qs_calcuations.txt 	#(list of calculated Qs)
-```
-
-#### output_ML/*
-This is the directory that contains the output of the ML. 
-*We use to ML predictions to decide for which pairs we run NEB*. In particular this information is contained in 
-```
-output_ML/T{T_i}/predictedQs_T{T_i}_allpairs.csv 	
-```
-which lists the predicted qs for all the pairs we have available, and
-```
-output_ML/T{T_i}/predictedQs_T{T_i}_newpairs.csv 	
-```
-which lists the predicted qs only for the pairs for which we have not run the NEB.
 
 
 # Quick run
