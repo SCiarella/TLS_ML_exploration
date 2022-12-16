@@ -1,8 +1,8 @@
 In_file='T0062.feather'
 pretraining_classifier='pretraining-classifier-T0062.feather'
 pretraining_predictor='pretraining-predictor-T0062.feather'
-calculations_classifier='class_to_exclude.csv'
-calculations_predictor='output_feature.csv'
+calculations_classifier='class_to_exclude_T0062.csv'
+calculations_predictor='output_feature_T0062.csv'
 class_train_hours=0.05
 pred_train_hours=0.05
 Fast_class=False
