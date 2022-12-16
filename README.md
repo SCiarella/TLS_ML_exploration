@@ -67,11 +67,11 @@ The package is already ready to run and it just needs your new data.
 The repository consist in a series of python codes named `step[0-4].py` . 
 
 In brief, each of them has the following task:
-* **step0**.py:  data collection and preprocessing
-* **step1**.py:  [re-]train the double well (DW) classifier
-* **step2**.py:  DW classification
-* **step3**.py:  [re-]train the predictor
-* **step4**.py:  prediction of the target property of all the pairs (i.e. the quantum splitting)
+* **step0.py**:  data collection and preprocessing
+* **step1.py**:  [re-]train the double well (DW) classifier
+* **step2.py**:  DW classification
+* **step3.py**:  [re-]train the predictor
+* **step4.py**:  prediction of the target property of all the pairs (i.e. the quantum splitting)
 
 
 Those codes run using the content of the MLmodel directory.
@@ -162,8 +162,8 @@ The supporting file `myparams.py` allows the user to set the correct hyperpamete
 * **pretraining_predictor**: name of the pretraining file for the predictor
 * **calculations_classifier**: name of the file containing the list of pairs calculated in class-0
 * **calculations_predictor**: name of the file containing the calculation of the target feature
-* *class_train_hours*: training time in hours for the classifier
-* *pred_train_hours*: training time in hours for the predictor
+* **class_train_hours**: training time in hours for the classifier
+* **pred_train_hours**: training time in hours for the predictor
 * **Fast_class**: if True use a lighter ML model for classification, with worse performance but better inference time 
 * **Fast_pred**: if True use a lighter ML model for prediction, with worse performance but better inference time
 * **ij_decimals**: number of significant digits to identify the states. If they are labeled using an integer number you can set this to 0
