@@ -34,31 +34,27 @@ if __name__ == "__main__":
     In_label = In_file.split('/')[-1].split('.')[0]
     print('\n*** Requested to apply the classifier to all the pairs in {}'.format(In_file))
 
-    ensure_dir('output_ML/T{}/'.format(T))
-    ensure_dir('NEB_calculations/T{}/'.format(T))
+    ensure_dir('output_ML/{}/'.format(In_label))
     
     # *************
     # (1) Load the preprocessed data 
-    new_df=pd.read_feather('./Configurations/postprocessing/T{}.feather'.format(Tlabel))
+    new_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
     
     print('\n\t@@@@ Overall we have {} pairs'.format(len(new_df)))
 
     # *************
-    # (2) remove pairs with a Delta_E which is too large
-    new_df = new_df[new_df['Delta_E']<myparams.DeltaEMax]
-    print('*-> We decide to keep only the ones with Delta_E<{}, which are {}'.format(myparams.DeltaEMax, len(new_df)))
-    # and remove pairs with large d
-    new_df = new_df[new_df['total_displacement']<myparams.dMax]
-    print('*-> We decide to keep only the ones with d<{}, which are {}'.format(myparams.dMax, len(new_df)))
+    # (2) (optionally) remove pairs with a classic energy splitting which is too large
+    new_df = new_df[new_df[r'$\Delta E$']<0.1]
+    print('*-> We decide to keep only the ones with Delta_E<{}, which are {}'.format(0.1, len(new_df)))
 
     
     # *************
     # (3) apply the dw Filter 
     start= time.time()
-    classifier_save_path = 'MLmodel/dw-classification-M{}-T{}'.format(M,Tlabel)
+    classifier_save_path='MLmodel/classification-{}'.format(In_label)
     # check if the model is there
     if not os.path.isdir(classifier_save_path):
-        print('Error: I am looking for the classifier in {}, but I can not find it. If this is the first time, you have to run C_* before this'.format(classifier_save_path))
+        print('Error: I am looking for the classifier in {}, but I can not find it. You probably have to run step1 before this'.format(classifier_save_path))
         sys.exit()
     else:
         print('\nUsing the DW filter trained in {}'.format(classifier_save_path))
