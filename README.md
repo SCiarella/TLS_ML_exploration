@@ -178,17 +178,15 @@ Finally, we also provide two test codes to evaluate the results of the model:
 
   
 
-| :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|
-|--------------|:------------------------------------------------------------------------------------------------------------------------------|
-
-
 ...
 ----
 
 
-
-
 # Quick run
+
+| :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|
+|--------------|:------------------------------------------------------------------------------------------------------------------------------|
+
 
 ### First execution
 Right after the installation, and *collecting the data* and storing them as explained [here](#Overview) , you can run:
