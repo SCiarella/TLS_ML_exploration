@@ -170,6 +170,14 @@ The supporting file `myparams.py` allows the user to set the correct hyperpamete
 * **validation_split**: ratio of data that go into the validation set
 
 
+#### Test the model
+
+Finally, we also provide two test codes to evaluate the results of the model:
+* `test1.py` will compare the predicted target feature with its exact value, over the validation set that was not used to train the model
+* `test2.py` will perform the [SHAP](https://github.com/slundberg/shap) analysis for the trained model
+
+  
+
 | :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|
 |--------------|:------------------------------------------------------------------------------------------------------------------------------|
 

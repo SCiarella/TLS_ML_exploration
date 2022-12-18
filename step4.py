@@ -20,10 +20,7 @@ import myparams
 
 In_label = myparams.In_file.split('/')[-1].split('.')[0]
 print('\n*** Requested to apply the predictor to {}'.format(In_label))
-natoms = 1500
 model_path='MLmodel/prediction-{}'.format(In_label)
-low_thresh_qs=0.00001
-ndecimals=10
 
 # check if the model is there
 if not os.path.isdir(model_path):
