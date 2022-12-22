@@ -53,7 +53,7 @@ rm libomp.rb
 If you are interested in performing [SHAP](https://github.com/slundberg/shap) analysis of the trained model using the scripts provided here, you also need to install the following packages:
 ```
 pip install shap seaborn
-``
+```
 
 Then you can proceed with the download of this repository
 ```
