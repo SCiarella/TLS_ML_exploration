@@ -50,8 +50,12 @@ brew install libomp.rb
 rm libomp.rb
 ```
 
+If you are interested in performing [SHAP](https://github.com/slundberg/shap) analysis of the trained model using the scripts provided here, you also need to install the following packages:
+```
+pip install shap seaborn
+``
 
-Then you can proceed with the download of this package
+Then you can proceed with the download of this repository
 ```
 cd ~
 git clone https://github.com/SCiarella/TLS_ML_exploration.git
@@ -176,8 +180,8 @@ Finally, we also provide two test codes to evaluate the results of the model:
 * `test1.py` will compare the predicted target feature with its exact value, over the validation set that was not used to train the model
 * `test2.py` will perform the [SHAP](https://github.com/slundberg/shap) analysis for the trained model
 
+The output of both tests will be stored in `output_ML/{In_file_label}/` .
   
-
 
 ---
 ## Quick run
