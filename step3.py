@@ -41,6 +41,7 @@ if __name__ == "__main__":
     if not os.path.isfile('{}/{}'.format(calculation_dir,myparams.calculations_predictor)):
         print('\n*(!)* Notice that there are no prediction data\n')
         use_new_calculations = False
+        calculated_pairs = pd.DataFrame()
     else:
         use_new_calculations = True
         calculated_pairs = pd.read_csv('{}/{}'.format(calculation_dir,myparams.calculations_predictor), index_col=0)

@@ -56,33 +56,30 @@ all_qs_df = pairs_df.copy()
 calculation_dir='./exact_calculations/{}'.format(In_label)
 if not os.path.isfile('{}/{}'.format(calculation_dir,myparams.calculations_classifier)):
     print('\n*(!)* Notice that there are no classification data\n')
-    use_new_calculations = False
 else:
-    use_new_calculations = True
     class_0_pairs = pd.read_csv('{}/{}'.format(calculation_dir,myparams.calculations_classifier), index_col=0)
     class_1_pairs = pd.read_csv('{}/{}'.format(calculation_dir,myparams.calculations_predictor), index_col=0)[['conf','i','j']]
 
-temp_df = all_qs_df.reset_index(drop=True)
-temp_df['index'] = temp_df.index
-remove_df = temp_df.merge(class_0_pairs, how = 'inner' ,indicator=False)
-remove_df = remove_df.set_index('index')
-all_qs_df= all_qs_df.drop(remove_df.index).reset_index()
-print('\n*We know that {} of the new pairs are class-0 (from calculations), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
+    temp_df = all_qs_df.reset_index(drop=True)
+    temp_df['index'] = temp_df.index
+    remove_df = temp_df.merge(class_0_pairs, how = 'inner' ,indicator=False)
+    remove_df = remove_df.set_index('index')
+    all_qs_df= all_qs_df.drop(remove_df.index).reset_index()
+    print('\n*We know that {} of the new pairs are class-0 (from calculations), so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
 
 # then exclude the pairs for which I already run the exact calculation
 if not os.path.isfile('{}/{}'.format(calculation_dir,myparams.calculations_predictor)):
     print('\n*(!)* Notice that there are no prediction data\n')
-    use_new_calculations = False
 else:
-    use_new_calculations = True
     calculated_pairs = pd.read_csv('{}/{}'.format(calculation_dir,myparams.calculations_predictor), index_col=0)
-temp_df = all_qs_df.reset_index(drop=True)
-temp_df['index'] = temp_df.index
-remove_df = temp_df.merge(calculated_pairs, how = 'inner' ,indicator=False)
-remove_df = remove_df.set_index('index')
-all_qs_df= all_qs_df.drop(remove_df.index)
-all_qs_df= all_qs_df.reset_index(drop=True)
-print('\n*For {} of the new pairs we already run the calculations, so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
+
+    temp_df = all_qs_df.reset_index(drop=True)
+    temp_df['index'] = temp_df.index
+    remove_df = temp_df.merge(calculated_pairs, how = 'inner' ,indicator=False)
+    remove_df = remove_df.set_index('index')
+    all_qs_df= all_qs_df.drop(remove_df.index)
+    all_qs_df= all_qs_df.reset_index(drop=True)
+    print('\n*For {} of the new pairs we already run the calculations, so we do not need to predict them.\nWe then finish with {} new pairs'.format(len(remove_df),len(all_qs_df)))
 
 # Storing
-pairs_df[['conf','i','j','target_feature']].to_csv('{}/predicted_{}_newpairs.csv'.format(outdir,In_label),index=False)
+all_qs_df[['conf','i','j','target_feature']].to_csv('{}/predicted_{}_newpairs.csv'.format(outdir,In_label),index=False)

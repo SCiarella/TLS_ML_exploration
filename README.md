@@ -186,6 +186,25 @@ The output of both tests will be stored in `output_ML/{In_file_label}/` .
 ---
 ## Quick run
 
+The first step is to correctly set the parameters in `myparams.py` in order to point to the correct location for the input files.  
+The most fundamental and necessary file is the database containing all the available pairs `In_data/{myparams.In_file}`. 
+Then in order to start the iterative procedure some initial observations are required. These can either be pretraining sets in `MLmodel/{myparams.pretraining_classifier}` and `MLmodel/{myparams.pretraining_predictor}`, or alternatively some calculations over `In_data/{myparams.In_file}` that have to be stored in `exact_calculations/{In_file_label}/{myparams.calculations_classifier}` and `exact_calculations/{In_file_label}/{myparams.calculations_classifier}`.
+
+After this, it is possible to run a full iteration consisting in `step[1-4].py` .
+Finally this will produce the output file `output_ML/predicted_{In_file_label}_newpairs.csv` that contains the predicted `target_feature` for all the available pairs:
+
+| conf | i | j | target_feature |
+|:----:|:-:|:-:|:--------------:|
+| ...  |...|...|...             |
+|      |   |   |                |
+
+the database contains only the pairs for which the exact calculation is not available and it is sorted based on the value of `target_feature`.
+
+The final step of the iteration consists in calculating the exact value of `target_feature` for the best $K_i$ pairs, which corresponds to the first $K_i$ lines of `output_ML/predicted_{In_file_label}_newpairs.csv` if the target is a low value of `target_feature`.
+You can reiterate this procedure as many time as you want and add new input pairs at any iteration.  
+In the [paper](https://arxiv.org/abs/2212.05582), we discuss some criteria to decide the value of $K_0$, the number of iteration and the stopping criterion.
+
+
 | :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|
 |--------------|:------------------------------------------------------------------------------------------------------------------------------|
 

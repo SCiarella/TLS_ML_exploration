@@ -43,6 +43,8 @@ if __name__ == "__main__":
     if not os.path.isfile('{}/{}'.format(calculation_dir,myparams.calculations_classifier)):
         print('\n*(!)* Notice that there are no classification data\n')
         use_new_calculations = False
+        class_0_pairs = pd.DataFrame()
+        class_1_pairs = pd.DataFrame()
     else:
         use_new_calculations = True
         class_0_pairs = pd.read_csv('{}/{}'.format(calculation_dir,myparams.calculations_classifier), index_col=0)
