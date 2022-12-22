@@ -205,78 +205,9 @@ You can reiterate this procedure as many time as you want and add new input pair
 In the [paper](https://arxiv.org/abs/2212.05582), we discuss some criteria to decide the value of $K_0$, the number of iteration and the stopping criterion.
 
 
+---
+## Reproduce TLS results
+
+
 | :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|
 |--------------|:------------------------------------------------------------------------------------------------------------------------------|
-
-
-### First execution
-Right after the installation, and *collecting the data* and storing them as explained [here](#Overview) , you can run:
-```
-python A_*
-```
-to prepare all the pairs, followed by
-```
-python B_* && python C_* 
-```
-to train the dw classifier for the first time.
-| :memo:        | Notice that some data are already provided to train the dw classifier and the qs predictor       |
-|---------------|:------------------------|
-
-Then in order to predict if your unknown pairs are dw or not you run once again
-```
-python B_* 
-```
-
-Then in order to train the qs predictor you run
-```
-python F_* 
-```
-and then you can run
-```
-python E_* 
-```
-in order to predict the quantum splitting
-
-
-### Each time you add new data
-Each time you add new data in Configurations/minima, you have to run
-
-```
-python A_* && python B_* && python E_* 
-```
-in order to obtain predictions also for this new data.
-
-
-| :point_up:        | If you have new NEB results you can **re-train the ML models**. |
-|---------------|:------------------------|
-
-In particular you can retrain the dw classifier with
-```
-python A_* && python C_* 
-```
-and you can train the qs predictor with
-```
-python A_* && python E_* 
-```
-
-### Validation
-It is possible to evaluate the performances of the ML models by running
-```
-python D_* 
-```
-to test the dw classifier, and
-```
-python G_* 
-```
-to test the qs predictor.
-
-The content of `output_ML/dw_classifier_performances.txt` will provide an estimate of the accuracy of the classifier evaluated over its training set followed up by the same measures over a test set that the model has not used for its training. You can expect that this second measure will be the overall performance of the classifier.
-
-The qs predictor can be evaluated by looking at the plots in `output_ML/qs-true_vs_AI_t*set.png` that will show the quality of the prediction over the training set and the test set (not used for training).
-Additionally it is possible to look at `output_ML/T*/splitting_cdf_T*.png` which reports the cumulativie distribution of the energy splitting, comparing the NEBs to the ML predictions, and `output_ML/T*/TLS-search-efficiency.png` which reports the efficiency of the ML approach showing how many NEBs are required to find all the TLS available so far.
-
----
-## Output of the ML model
-The most interesting output of the ML model is the database in `output_ML/T*/predictedQs_T*_newpairs.csv`
-It contains the quantum splitting prediction for all the pairs of minima, ordered from smallest to largest.
-This means that the **_next NEBs that you should run_** are for the pairs at the beginning of this list.
