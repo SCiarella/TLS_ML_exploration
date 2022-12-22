@@ -50,7 +50,8 @@ if __name__ == "__main__":
     # then load the info about all the pairs
     pairs_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
     # and format in the correct way
-    pairs_df = pairs_df.round(decimals=ndecimals)
+    if ndecimals>0:
+        pairs_df = pairs_df.round(decimals=ndecimals)
     
     
     # I also have to include the pre-training data, which I load now to see if overall we gained data
@@ -85,7 +86,10 @@ if __name__ == "__main__":
                 i = row['i']
                 j = row['j']
                 target = row['out']
-                a = pairs_df[(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))].copy()
+                if ndecimals>0:
+                    a = pairs_df[(pairs_df['conf']==conf)&(pairs_df['i'].between(i-rounding_error,i+rounding_error))&(pairs_df['j'].between(j-rounding_error,j+rounding_error))].copy()
+                else:
+                    a = pairs_df[(pairs_df['conf']==conf)&(pairs_df['i']==i)&(pairs_df['j']==j)].copy()
                 if len(a)>1:
                     print('Error! multiple correspondences in dw')
                     sys.exit()
@@ -123,7 +127,7 @@ if __name__ == "__main__":
 
     
     # This is the new training df that will be stored at the end 
-    new_training_df = out_df.copy()
+    new_training_df = out_df
     if len(new_training_df)<=len(used_data):
         print('\n(!) After removing the duplicates it appears that the number of data has not increased since the last time')
         if os.path.isfile('{}/predictor.pkl'.format(model_path)):
@@ -146,6 +150,8 @@ if __name__ == "__main__":
     Ntrain = N -Nval
     # shuffle
     new_training_df=new_training_df.sample(frac=1, random_state=20, ignore_index=True)
+    # (!) To be compatible in feather format, I will replace the 'NotAvail' entries with 0
+    new_training_df = new_training_df.replace('NotAvail',0)
     # and slice
     training_set = new_training_df.iloc[:Ntrain]
     validation_set = new_training_df.iloc[Ntrain:N]

@@ -75,8 +75,9 @@ if __name__ == "__main__":
         # so I need to load the input features for all of them
         try:
             all_pairs_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
-            all_pairs_df.i = all_pairs_df.i.round(ndecimals)
-            all_pairs_df.j = all_pairs_df.j.round(ndecimals)
+            if ndecimals>0:
+                all_pairs_df.i = all_pairs_df.i.round(ndecimals)
+                all_pairs_df.j = all_pairs_df.j.round(ndecimals)
         except:
             print('Error: there are no data prepared')
             sys.exit()
@@ -96,7 +97,10 @@ if __name__ == "__main__":
                 i = row['i']
                 j = row['j']
                 # do we have it ?
-                a = all_pairs_df[(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
+                if ndecimals>0:
+                    a = all_pairs_df[(all_pairs_df['conf']==conf)&(all_pairs_df['i'].between(i-rounding_error,i+rounding_error))&(all_pairs_df['j'].between(j-rounding_error,j+rounding_error))]
+                else:
+                    a = all_pairs_df[(all_pairs_df['conf']==conf)&(all_pairs_df['i']==i)&(all_pairs_df['j']==j)]
                 if len(a)>1:
                     print('Error! multiple correspondences for {}'.format(element))
                     sys.exit()

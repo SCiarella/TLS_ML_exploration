@@ -118,7 +118,7 @@ shap_values_specific_samples_p = explainer_p(X_specific_samples_p)
 
 
 # *** Feature correlation plot
-fig, myax = plt.subplots(figsize=(18,18))
+fig, myax = plt.subplots(figsize=(7,7))
 # create dataframe of shap
 shap_df = (pd.DataFrame(shap_values_p.data, columns=X_p.columns))
 corr=shap_df.corr()
@@ -178,7 +178,7 @@ shap_values_specific_samples_c = explainer_c(X_specific_samples_c)
 
 
 # *** Feature correlation plot
-fig, myax = plt.subplots(figsize=(18,18))
+fig, myax = plt.subplots(figsize=(7,7))
 # create dataframe of shap
 shap_df = (pd.DataFrame(shap_values_c.data, columns=X_c.columns))
 corr=shap_df.corr()
