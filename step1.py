@@ -180,6 +180,7 @@ if __name__ == "__main__":
     
     
     print('\nFrom the overall %d data we prepare:\n\t- training set of %d  (half dw and half non-dw) \n\t- validation set of %d  (half dw and half non-dw)\n\n'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
+    print(training_set)
 
     
     
