@@ -209,5 +209,5 @@ In the [paper](https://arxiv.org/abs/2212.05582), we discuss some criteria to de
 ## Reproduce TLS results
 
 
-| :no_entry:   | [Work in progress] We are updating the package. The content below is not consistent with the present version of the repository|
+| :no_entry:   | [Work in progress] We are updating the package and posting the data on Zenodo.|
 |--------------|:------------------------------------------------------------------------------------------------------------------------------|
