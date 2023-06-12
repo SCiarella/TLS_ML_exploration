@@ -24,7 +24,7 @@ Structural defects control the kinetic, thermodynamic and mechanical properties 
 
 The idea of this project is to use machine learning to **speed up** the exploration of the landscape of glassy materials or slow dynamics, with particular focus on the *iterative training* scheme that we introduced.
 State-to-state transitions like two-level systems are extremely interesting, but when the dynamics is slow they are very hard to find, and the situation is even worse for glassy systems, characterized by an exponential number of states.
-The problem is that often the trajectory of the system does not explore directly the targetted state-to-state transitions during the limited observation time.
+The problem is that often the trajectory of the system does not explore directly the targeted state-to-state transitions during the limited observation time.
 The ML model that we propose constructs all the pairs of states (even the one that the trajectory never crossed) and rapidly (<img src="https://latex.codecogs.com/svg.image?10^{-5}" /> s) predicts target crucial properties for the specific transition, thus estimating if the pair is one of the desired transition and if precise calculation is needed. Overall this significantly reduces the computational load. 
 
 
@@ -68,10 +68,11 @@ The package is already ready to run and it just needs your new data.
 
 <img src="./doc/fig_steps.png" width="1100" />
 
-The repository consist in a series of python codes named `step[0-4].py` . 
+The repository consist in a series of python codes named `step[1-4].py` . 
 
 In brief, each of them has the following task:
-* **step0.py**:  data collection and preprocessing
+* *(not included)* **step0**:  data collection and preprocessing
+
 * **step1.py**:  [re-]train the double well (DW) classifier
 * **step2.py**:  DW classification
 * **step3.py**:  [re-]train the predictor
@@ -86,9 +87,8 @@ Let's discuss step by step this procedure, using as example the TLS identificati
 #### Step 0: Data collection and preprocessing
 
 The first step of the procedure consist in collecting the relevant input features for the different pairs of states.
-In the example `step0.py` we load the database of IS pairs that we use in our [paper](https://arxiv.org/abs/2212.05582), which is uploaded on [Zenodo](https://zenodo.org/) [TBD] and contains the input features discussed in the paper.
-The user can then specify the correct input file name as `myparams.In_file` .
-The input database is expected to have the following structure:
+In this example, we use one of the collections of IS pairs that we discussed in our [paper](https://arxiv.org/abs/2212.05582), which is stored on Zenodo at [TLS_input_data_Ciarella_et_al_2023](https://zenodo.org/record/8026630).
+The database contains pairs of configurations already preprocessd in order to have the following structure:
  
 |              |feature 1| feature 2| ... | feature $N_f$ |
 |--------------|---------|----------|-----|---------------|
@@ -97,8 +97,13 @@ The input database is expected to have the following structure:
 |...           |         |          |     |               |
 |pair $i_N j_N$|         |          |     |               |
 
-Notice that the database does not contain the output feature (i.e. the quantum splitting), because we do not know its value for all the pairs and the goal of this procedure is to calculate it only for a small selected groups of pairs.
-For a different problem than the one we discuss, we suggest to start with the inclusion of additional descriptors such as [SOAP](https://singroup.github.io/dscribe/1.0.x/tutorials/descriptors/soap.html) or [bond orientational order parameters](https://pyscal.org/en/latest/examples/03_steinhardt_parameters.html).
+Notice that the database does not contain the output feature (i.e. the quantum splitting in the example), because we do not know its value for all the pairs and the goal of this procedure is to calculate it only for a small selected groups of pairs.
+
+In a more general situation, the user will have to implement a `step0` procedure, to preprocess the raw data (i.e. xyz configurations), into a database containing the relevant information for each pair.
+In the paper we discuss how we ended up with our final set of features and the exclusion process that we used to save memory and space. 
+In general, any number of features can be evaluated in `step0` and their importance depends on the specific details of the problem. We discuss [here](https://arxiv.org/abs/2212.05582) which features to use for questions related to TLS and excitations. 
+The user will have to identify the set of features that are better suited to capture the specific phenomenon of interest.
+On top of the features we discussed in the paper, useful addition could be [SOAP descriptors](https://singroup.github.io/dscribe/1.0.x/tutorials/descriptors/soap.html) or [bond orientational order parameters](https://pyscal.org/en/latest/examples/03_steinhardt_parameters.html).
 
 
 #### Step 1: Training the classifier
@@ -208,6 +213,7 @@ In the [paper](https://arxiv.org/abs/2212.05582), we discuss some criteria to de
 ---
 ## Reproduce TLS results
 
-
-| :no_entry:   | [Work in progress] We are updating the package and posting the data on Zenodo.|
-|--------------|:------------------------------------------------------------------------------------------------------------------------------|
+In order to reproduce the TLS result, we have provided the following [**Zenodo** directory](https://zenodo.org/record/8026630). 
+This directory contains the databases `QS_T{0062,007,0092}.feather` corresponding to the pairs that we used for the TLS analysis with all their relevant features, at the three temperatures reported.
+In combination with the `exact_calculations` provided in this repository, the TLS data can be processed using the pipeline discussed above to reproduce all the findings reported in the [paper](https://arxiv.org/abs/2212.05582).
+Finally, in the directory `TLS_pairs_Khomenko_et_al_2020` we report the data corresponding to the smaller set of TLS pairs identified in *Khomenko et al. PRL 124.22 (2020): 225901*.
