@@ -7,7 +7,7 @@
 
 *by Simone Ciarella, Dmytro Khomenko, Ludovic Berthier, Felix C. Mocanu, David R. Reichman, Camille Scalliet and Francesco Zamponi*
   
-Paper links: [**Nat Commun 14, 4229 (2023)**](https://www.nature.com/articles/s41467-023-39948-7)  [**arXiv**](https://arxiv.org/abs/2212.05582)
+Paper links: [**Nat Commun 14, 4229 (2023)**](https://www.nature.com/articles/s41467-023-39948-7)  [*(arXiv)*](https://arxiv.org/abs/2212.05582)
 
 Structural defects control the kinetic, thermodynamic and mechanical properties of glasses. For instance, rare quantum tunneling two-level systems (TLS) govern the physics of glasses at very low temperatures. Because of their extremely low density, it is very hard to directly identify them in computer simulations. We introduce a machine learning approach to efficiently explore the potential energy landscape of glass models and identify desired classes of defects. We focus in particular on TLS and we design an algorithm that is able to rapidly predict the quantum splitting between any two amorphous configurations produced by classical simulations. This in turn allows us to shift the computational effort towards the collection and identification of a larger number of TLS, rather than the useless characterization of non-tunneling defects which are much more abundant. Finally, we interpret our machine learning model to understand how TLS are identified and characterized, thus giving direct physical insight into their microscopic nature. 
 
