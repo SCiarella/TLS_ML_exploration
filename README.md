@@ -25,16 +25,19 @@ Structural defects control the kinetic, thermodynamic and mechanical properties 
 
 
 
-The idea of this project is to use machine learning to **speed up** the exploration of glassy landscape, that fundamentally govern the behavior of disordered materials and many other systems that exhibit slow dynamics. This repository puts particular emphasis on the concept of *iterative learning* applied to *state-to-state* transitions.
-State-to-state transitions (like two-level systems) are extremely interesting, but when the dynamics is slow they are extremely hard to find, and it is even worse for glassy systems, which are characterized by an exponential number of states.
-The problem is that often the evolution trajectory of the system does not explore directly the targeted state-to-state transitions during the limited observation time.
-The ML model that we propose is able to investigate all the possible pairs of states (even the ones that the trajectory had not crossed yet) and rapidly (<img src="https://latex.codecogs.com/svg.image?10^{-5}" /> s) predicts crucial properties for the specific transition, thus estimating if the pair is one of the desired state-to-state pair, that we would like to collect and measure. Overall this **significantly reduces the computational load**, making the search possible. 
+The idea of this project is to use machine learning to **speed up** the exploration of glassy landscapes, that fundamentally govern the behavior of disordered materials and many other systems characterized by slow dynamics. This repository puts particular emphasis on the concept of *iterative learning* applied to *state-to-state* transitions.
+
+State-to-state transitions refer to the phenomenon where a physical system undergoes a change from one quantized state to another, often involving processes like excitation or relaxation, such as in two-level systems.
+State-to-state transitions are extremely interesting, but when the dynamics is slow they are also extremely hard to find. And it is even worse for glassy systems, because they are characterized by an exponentially large number of states.
+The practical problem is that usually the time-evolution trajectory of the system does not explore directly most of the state-to-state transitions available, during the limited observation time.
+
+The ML model that I propose in this repository is able to investigate all the possible pairs of states (even the ones that the trajectory has not crossed yet) and rapidly (<img src="https://latex.codecogs.com/svg.image?10^{-5}" /> s) predicts crucial properties for the specific transition. This allows you to rapidly estimate if the pair is one of your desired state-to-state transition, that you can then collect and study. Overall the use of this ML approach **significantly reduces the computational load**, making such a research possible. 
 
 
 
 ## Installation
 
-To install all the prerequired packages from a fresh conda environment run the following
+To install all the prerequired packages from a fresh conda environment run the following commands:
 ```
 conda create -n tls_exploration -y python=3.9
 conda activate tls_exploration
