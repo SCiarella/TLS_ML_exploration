@@ -12,7 +12,7 @@ Paper links: [**Nat Commun 14, 4229 (2023)**](https://www.nature.com/articles/s4
 Structural defects control the kinetic, thermodynamic and mechanical properties of glasses. For instance, rare quantum tunneling two-level systems (TLS) govern the physics of glasses at very low temperatures. Because of their extremely low density, it is very hard to directly identify them in computer simulations. We introduce a machine learning approach to efficiently explore the potential energy landscape of glass models and identify desired classes of defects. We focus in particular on TLS and we design an algorithm that is able to rapidly predict the quantum splitting between any two amorphous configurations produced by classical simulations. This in turn allows us to shift the computational effort towards the collection and identification of a larger number of TLS, rather than the useless characterization of non-tunneling defects which are much more abundant. Finally, we interpret our machine learning model to understand how TLS are identified and characterized, thus giving direct physical insight into their microscopic nature. 
 
 ---
-*In this repository, we share the code used to produce the main findings of the paper. We also show step by step how this approach can be generalized to study other state-to-state transitions.*
+*In this repository, I share the code used to produce the main findings of the paper. I also show step by step how this approach can be*  **applied to any other** *state-to-state transitions problem.*
 
 ---
   
@@ -25,10 +25,10 @@ Structural defects control the kinetic, thermodynamic and mechanical properties 
 
 
 
-The idea of this project is to use machine learning to **speed up** the exploration of glassy landscape, that can be found in glassy materials or many other problems characterized by slow dynamics. This repository puts particular emphasis on the concept of *iterative training* that we introduced in the reference paper.
-State-to-state transitions like two-level systems are extremely interesting, but when the dynamics is slow they are very hard to find, and the situation is even worse for glassy systems, characterized by an exponential number of states.
-The problem is that often the trajectory of the system does not explore directly the targeted state-to-state transitions during the limited observation time.
-The ML model that we propose constructs all the pairs of states (even the one that the trajectory never crossed) and rapidly (<img src="https://latex.codecogs.com/svg.image?10^{-5}" /> s) predicts target crucial properties for the specific transition, thus estimating if the pair is one of the desired transitions and if precise calculation is needed. Overall this significantly reduces the computational load. 
+The idea of this project is to use machine learning to **speed up** the exploration of glassy landscape, that fundamentally govern the behavior of disordered materials and many other systems that exhibit slow dynamics. This repository puts particular emphasis on the concept of *iterative learning* applied to *state-to-state* transitions.
+State-to-state transitions (like two-level systems) are extremely interesting, but when the dynamics is slow they are extremely hard to find, and it is even worse for glassy systems, which are characterized by an exponential number of states.
+The problem is that often the evolution trajectory of the system does not explore directly the targeted state-to-state transitions during the limited observation time.
+The ML model that we propose is able to investigate all the possible pairs of states (even the ones that the trajectory had not crossed yet) and rapidly (<img src="https://latex.codecogs.com/svg.image?10^{-5}" /> s) predicts crucial properties for the specific transition, thus estimating if the pair is one of the desired state-to-state pair, that we would like to collect and measure. Overall this **significantly reduces the computational load**, making the search possible. 
 
 
 
@@ -76,21 +76,21 @@ The repository consists of a series of Python codes named `step[1-4].py`.
 In brief, each of them has the following task:
 * *(not included)* **step0**:  data collection and preprocessing
 
-* **step1.py**:  [re-]train the double well (DW) classifier
+* **step1.py**:  *(Filtering)* [re-]train the double well (DW) classifier
 * **step2.py**:  DW classification
-* **step3.py**:  [re-]train the predictor
+* **step3.py**:  *(Prediction)* [re-]train the predictor
 * **step4.py**:  prediction of the target property of all the pairs (i.e. the quantum splitting)
 
 
 Those codes run using the content of the MLmodel directory.
 There is also a supporting file named `myparams.py` that allows the user to control the procedure as explained in detail in the next section.
-Let's discuss step by step this procedure, using as example the TLS identification problem.
+Let's *discuss step by step* this procedure, using as example the TLS identification problem.
 
 
 #### Step 0: Data collection and preprocessing
 
 The first step of the procedure consists in collecting the relevant input features for the different pairs of states.
-In this example, we use one of the collections of IS pairs that we discussed in our [paper](https://arxiv.org/abs/2212.05582), which is stored on Zenodo at [TLS_input_data_Ciarella_et_al_2023](https://zenodo.org/record/8026630).
+In this example, I use one of the collections of IS pairs that I discussed in the [paper](https://www.nature.com/articles/s41467-023-39948-7), which is stored on Zenodo at [TLS_input_data_Ciarella_et_al_2023](https://zenodo.org/record/8026630).
 The database contains pairs of configurations already preprocessed in order to have the following structure:
  
 |              |feature 1| feature 2| ... | feature $N_f$ |
@@ -100,19 +100,19 @@ The database contains pairs of configurations already preprocessed in order to h
 |...           |         |          |     |               |
 |pair $i_N j_N$|         |          |     |               |
 
-Notice that the database does not contain the output feature (i.e. the quantum splitting in the example), because we do not know its value for all the pairs and the goal of this procedure is to calculate it only for a small selected group of pairs.
+Notice that the database does not contain the output feature (i.e. the quantum splitting in the example), because I do not know its value for all the pairs and the goal of the whole procedure is to calculate it only for a small selected group of pairs.
 
 In a more general situation, the user will have to implement a `step0` procedure, to preprocess the raw data (i.e. XYZ configurations), into a database containing the relevant information for each pair.
-In the paper, we discuss how we ended up with our final set of features and the exclusion process that we used to save memory and space. 
-In general, any number of features can be evaluated in `step0` and their importance depends on the specific details of the problem. We discuss [here](https://arxiv.org/abs/2212.05582) which features to use for questions related to TLS and excitations. 
+In the paper, I discuss how we ended up with our final set of features and the exclusion process that I used to save memory and space. 
+In general, any number of features can be evaluated in `step0` and their importance depends on the specific details of the problem. I discuss [here](https://www.nature.com/articles/s41467-023-39948-7) which features to use for questions related to TLS and excitations. 
 The user will have to identify the set of features that are better suited to capture the specific phenomenon of interest.
-On top of the features we discussed in the paper, useful addition could be [SOAP descriptors](https://singroup.github.io/dscribe/1.0.x/tutorials/descriptors/soap.html) or [bond-orientational order parameters](https://pyscal.org/en/latest/examples/03_steinhardt_parameters.html).
+On top of the features I discussed in the paper, useful additions that I suggest could be [SOAP descriptors](https://singroup.github.io/dscribe/1.0.x/tutorials/descriptors/soap.html) or [bond-orientational order parameters](https://pyscal.org/en/latest/examples/03_steinhardt_parameters.html).
 
 
 #### Step 1: Training the classifier
 
-Next, we train the classifier. The role of the classifier is to exclude pairs that are evidently not in the target group. In our example of TLS search, we know that a non-DW pair can not form a TLS, so we separate them a priori. 
-In addition to the input file containing all the features, step 1 makes use of a pretraining set of size $K_0^c$ for the iterative training specified as `myparams.pretraining_classifier`, which has to be placed in the `MLmodel/` directory.
+Next, let's train the classifier. The role of the classifier is to exclude pairs that are evidently not in the target group. In our example of TLS search, we know that a non-DW pair can not form a TLS, so we separate them a priori. 
+In addition to the input file containing all the features, step-1 makes use of a pretraining set of size $K_0^c$ for the iterative training specified as `myparams.pretraining_classifier`, which has to be placed in the `MLmodel/` directory.
 The pretraining file contains the following information:
 
 |              |feature 1|  ... | feature $N_f$ | is in class to exclude ? |
@@ -184,7 +184,7 @@ The supporting file `myparams.py` allows the user to set the correct hyperparame
 
 #### Test the model
 
-Finally, we also provide two test codes to evaluate the results of the model:
+Finally, I also provide two test codes to evaluate the results of the model:
 * `test1.py` will compare the predicted target feature with its exact value, over the validation set that was not used to train the model
 * `test2.py` will perform the [SHAP](https://github.com/slundberg/shap) analysis for the trained model
 
@@ -210,14 +210,14 @@ the database contains only the pairs for which the exact calculation is not avai
 
 The final step of the iteration consists in calculating the exact value of `target_feature` for the best $K_i$ pairs, which corresponds to the first $K_i$ lines of `output_ML/predicted_{In_file_label}_newpairs.csv` if the target is a low value of `target_feature`.
 You can reiterate this procedure as many times as you want and add new input pairs at any iteration.  
-In the [paper](https://arxiv.org/abs/2212.05582), we discuss some criteria to decide the value of $K_0$, the number of iterations and the stopping criterion.
+In the [paper](https://www.nature.com/articles/s41467-023-39948-7), I discuss some criteria to decide the value of $K_0$, the number of iterations and the stopping criterion.
 
 
 ---
 ## Reproduce TLS results
 
-In order to reproduce the TLS result, we have provided the following [**Zenodo** directory](https://zenodo.org/record/8026630). 
-This directory contains the databases `QS_T{0062,007,0092}.feather` corresponding to the pairs that we used for the TLS analysis with all their relevant features, at the three temperatures.
-In combination with the `exact_calculations/*/*.csv` containing the results of the NEB calculations (provided in this repository), the TLS data can be processed using the pipeline discussed above to reproduce all the findings reported in the [paper](https://arxiv.org/abs/2212.05582).
+In order to reproduce the TLS result, I have provided the following [**Zenodo** directory](https://zenodo.org/record/8026630). 
+This directory contains the databases `QS_T{0062,007,0092}.feather` corresponding to the pairs that have been used for the TLS analysis with all their relevant features, at the three temperatures.
+In combination with the `exact_calculations/*/*.csv` containing the results of the NEB calculations (provided in this repository), the TLS data can be processed using the pipeline discussed above to reproduce all the findings reported in the [paper](https://www.nature.com/articles/s41467-023-39948-7).
 
-Finally, in the directory `TLS_pairs_Khomenko_et_al_2020` we report the data corresponding to the smaller set of TLS pairs identified in *Khomenko et al. PRL 124.22 (2020): 225901*.
+Finally, in the directory `TLS_pairs_Khomenko_et_al_2020` I report the data corresponding to the smaller set of TLS pairs identified in *Khomenko et al. PRL 124.22 (2020): 225901*.
