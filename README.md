@@ -21,7 +21,7 @@ Structural defects control the kinetic, thermodynamic and mechanical properties 
 
 [**Installation**](#Installation)
 | [**Quick run**](#Quick-run)
-| [**Reproduce TLS results**](https://www.nature.com/articles/s41467-023-39948-7)
+| [**Reproduce TLS results**](#Reproduce TLS results)
 
 
 
