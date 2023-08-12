@@ -5,7 +5,7 @@
 <img src="./doc/fig_main.png" width="1100" />
 
 
-*by Simone Ciarella, Dmytro Khomenko, Ludovic Berthier, Felix C. Mocanu, David R. Reichman, Camille Scalliet and Francesco Zamponi*
+*by **Simone Ciarella**, Dmytro Khomenko, Ludovic Berthier, Felix C. Mocanu, David R. Reichman, Camille Scalliet and Francesco Zamponi*
   
 Paper links: [**Nat Commun 14, 4229 (2023)**](https://www.nature.com/articles/s41467-023-39948-7)  [*(arXiv)*](https://arxiv.org/abs/2212.05582)
 
