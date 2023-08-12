@@ -67,7 +67,7 @@ cd ~
 git clone https://github.com/SCiarella/TLS_ML_exploration.git
 ```
 
-The package is already ready to run and it just needs your new data. 
+This package is *ready to run* and it just needs your input data. 
 
 ---
 ## Overview
@@ -85,7 +85,7 @@ In brief, each of them has the following task:
 * **step4.py**:  prediction of the target property of all the pairs (i.e. the quantum splitting)
 
 
-Those codes run using the content of the MLmodel directory.
+Those codes run using the content of the `MLmodel/` directory.
 There is also a supporting file named `myparams.py` that allows the user to control the procedure as explained in detail in the next section.
 Let's *discuss step by step* this procedure, using as example the TLS identification problem.
 
@@ -94,7 +94,7 @@ Let's *discuss step by step* this procedure, using as example the TLS identifica
 
 The first step of the procedure consists in collecting the relevant input features for the different pairs of states.
 In this example, I use one of the collections of IS pairs that I discussed in the [paper](https://www.nature.com/articles/s41467-023-39948-7), which is stored on Zenodo at [TLS_input_data_Ciarella_et_al_2023](https://zenodo.org/record/8026630).
-The database contains pairs of configurations already preprocessed in order to have the following structure:
+The dataframes contain pairs of configurations already preprocessed in order to have the following structure:
  
 |              |feature 1| feature 2| ... | feature $N_f$ |
 |--------------|---------|----------|-----|---------------|
@@ -103,45 +103,50 @@ The database contains pairs of configurations already preprocessed in order to h
 |...           |         |          |     |               |
 |pair $i_N j_N$|         |          |     |               |
 
-Notice that the database does not contain the output feature (i.e. the quantum splitting in the example), because I do not know its value for all the pairs and the goal of the whole procedure is to calculate it only for a small selected group of pairs.
+Notice that the dataframes do not contain the output feature (i.e. the quantum splitting in the example), because I do not know its value for all the pairs and the goal of the whole procedure is in fact to calculate it, but only for the pairs which are more likely to be the *interesting* ones.
 
-In a more general situation, the user will have to implement a `step0` procedure, to preprocess the raw data (i.e. XYZ configurations), into a database containing the relevant information for each pair.
+In a more general situation, the user must implement a `step0` procedure, to preprocess the raw data (i.e. XYZ configurations), into a dataframe containing the relevant information for each pair.
 In the paper, I discuss how we ended up with our final set of features and the exclusion process that I used to save memory and space. 
-In general, any number of features can be evaluated in `step0` and their importance depends on the specific details of the problem. I discuss [here](https://www.nature.com/articles/s41467-023-39948-7) which features to use for questions related to TLS and excitations. 
-The user will have to identify the set of features that are better suited to capture the specific phenomenon of interest.
-On top of the features I discussed in the paper, useful additions that I suggest could be [SOAP descriptors](https://singroup.github.io/dscribe/1.0.x/tutorials/descriptors/soap.html) or [bond-orientational order parameters](https://pyscal.org/en/latest/examples/03_steinhardt_parameters.html).
+In general, any number of features can be evaluated in `step0` and their specific importance strongly depends on the particular details of the problem. I discuss [here](https://www.nature.com/articles/s41467-023-39948-7) which features to use for questions similar to TLS and excitations. 
+Overall, the user must identify the set of features that are better suited to capture the specific phenomenon of interest.
+On top of the features that I discussed in the paper, useful additions could be [SOAP descriptors](https://singroup.github.io/dscribe/1.0.x/tutorials/descriptors/soap.html) or [bond-orientational order parameters](https://pyscal.org/en/latest/examples/03_steinhardt_parameters.html).
 
 
 #### Step 1: Training the classifier
 
 Next, let's train the classifier. The role of the classifier is to exclude pairs that are evidently not in the target group. In our example of TLS search, we know that a non-DW pair can not form a TLS, so we separate them a priori. 
-In addition to the input file containing all the features, step-1 makes use of a pretraining set of size $K_0^c$ for the iterative training specified as `myparams.pretraining_classifier`, which has to be placed in the `MLmodel/` directory.
-The pretraining file contains the following information:
+In addition to the input file containing all the features, step-1 makes use of a pretraining set of size $K_0^c$ for the iterative training specified as `myparams.pretraining_classifier`. The pretraining set has to be placed in the `MLmodel/` directory. I provide an example for the TLS problem.
 
-|              |feature 1|  ... | feature $N_f$ | is in class to exclude ? |
-|--------------|---------|------|---------------|:------------------------:|
-|pair $i_1 j_1$|         |      |               |           {0,1}          |
-|pair $i_2 j_1$|         |      |               |           {0,1}          |
-|...           |         |      |               |           ...            |
-|pair $i_N j_N$|         |      |               |           {0,1}          |
+The pretraining dataframe contains the following information:
 
-where the additional binary variable is set to $1$ if the pair is a good candidate for the target search (i.e. a DW), and $0$ if not.
-This will be the base for the initial training. Notice that it is also possible to train the model a single time and already achieve good performance if $K_0^c$ is large enough (around $10^4$ pairs for the DW) and the sample is representative.
+|              |feature 1|  ... | feature $N_f$ | is in class to keep ? |
+|--------------|---------|------|---------------|:---------------------:|
+|pair $i_1 j_1$|         |      |               |           {0,1}       |
+|pair $i_2 j_1$|         |      |               |           {0,1}       |
+|...           |         |      |               |           ...         |
+|pair $i_N j_N$|         |      |               |           {0,1}       |
 
-Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the program needs to include in its training set the new pairs that have been calculated during the iterative procedure. This can be done by specifying in `myparams.calculations_classifier` the name of the file that lists the results from the exact calculations over the pairs that have been suggested during the previous step of iterative training. This file has to be located in the directory `exact_calculations/In_file_label/`, where the subdirectory In_file_label corresponds to `myparams.In_file` without its extension `.*`. 
+where the additional binary variable is set to $1$ if the pair is a good candidate for the target search (i.e. a DW), and $0$ if it is not a good candidate and we would like to discard it.
+This will be the base for the initial training. 
+It is likely that training the model a single time will already achieve good performance if $K_0^c$ is large enough (around $10^4$ pairs for the DW) and the sample is representative.
+Notice that it is also **possible** to train the model **without pretraing**, but then the first few steps of the iterative procedure will probably show poor performance, and play the role of the pretraining.
+The uses has total freedom in designing the approach that is more suited to the specific situation.
+
+If it is not the first time that you are running *step_1.py* because you are at step $i>0$ of the iterative scheme, then the program needs to include in its training set the new pairs that you have studied after step-4 (at the end of the iterative step). This must be done by specifying in `myparams.calculations_classifier` the name of the file that lists the results from the calculations performed at the previous iterative step, following the suggestion of `step_4.py`. This file must be placed in the directory `exact_calculations/In_file_label/`, where the subdirectory In_file_label corresponds to `myparams.In_file` without its extension `.*`. 
 
 
 #### Step 2: Classifier
 
-The following step is to apply the classifier to the full collection of pairs in order to identify the good subgroup that can contain interesting pairs. 
-To do so, the user has simply to run `step2.py`. This will produce as output `output_ML/{In_file_label}/classified_{In_file_label}.csv` which is the database containing the information of all the pairs classified in class-1. Steps 3-4 will perform their operations only on this subset of pairs.
+The next step is to apply the classifier trained during step-1 to the full collection of pairs, in order to identify the good subgroup that can contain interesting pairs. 
+To do so, the user can simply run `step2.py`. This will produce as output `output_ML/{In_file_label}/classified_{In_file_label}.csv` which is the dataframe containing the information of all the pairs classified in class-1, which are then promising. Later, steps 3 and 4 will perform their operations **only on this subset** of good pairs.
 
 
 
 #### Step 3: Training the predictor
 
-We can now train the predictor to estimate the target feature. This corresponds to the quantum splitting or the energy barrier in the context of our TLS search. 
-In addition to the file generated by `step2.py` that contains all the pairs estimated to be in the interesting class, step 3 makes use of a pretraining set of size $K_0$ for the iterative training specified as `myparams.pretraining_predictor`, that has to be placed in the `MLmodel/` directory.
+We can now train the predictor to ultimately estimate the target feature. As a reminder, the target feature was the quantum splitting or the energy barrier in the context of the TLS search discussed in the reference paper. 
+In addition to the file generated by `step2.py` that contains all the pairs estimated to be in the interesting class, step-3 makes use of a pretraining set of size $K_0$ for the iterative training.
+The name of this dataframe has to be specified as `myparams.pretraining_predictor`, and it must be placed in the `MLmodel/` directory.
 The pretraining file contains the following information:
 
 |              |feature 1|  ... | feature $N_f$ | target_feature |
@@ -153,25 +158,35 @@ The pretraining file contains the following information:
 
 This will be the base for the initial training. Notice that it is also possible to train the model a single time and already achieve good performance if $K_0$ is large enough (around $10^4$ pairs for the TLS) and the sample is representative.
 
-Furthermore, if the process is at any $i>0$ reiteration of the iterative training scheme, then the program needs to include in its training set the new pairs that have been calculated during the iterative procedure. This can be done by specifying in `myparams.calculations_predictor` the name of the file that lists the results from the exact calculations over the pairs that have been suggested during the previous step of iterative training. This file has to be located in the directory `exact_calculations/In_file_label/`, where the subdirectory In_file_label corresponds to `myparams.In_file` without its extension `.*`. 
+If this is not the first time that you are running *step_3.py* because you are at step $i>0$ of the iterative scheme, then the program needs to include in its training set the new pairs that you have studied following step-4 (at the end of the iterative step).
+This must be done by specifying in `myparams.calculations_predictor` the name of the file that lists the results from the exact calculations over the pairs that have been suggested during the previous step of iterative training. This file must be placed in the directory `exact_calculations/In_file_label/`, where the subdirectory In_file_label corresponds to `myparams.In_file` without its extension `.*`. 
+
 
 
 #### Step 4: Predicting the target feature
 
-The final step of the iteration is to predict the target feature. Running `step4.py` will perform this prediction, and produce as output two files:
+The final step of one iteration is to use the ML model to predict the target feature. Running `step4.py` will perform this prediction, and produce as output two files.
+The first one is:
 ```
 output_ML/{In_file_label}/predicted_{In_file_label}_allpairs.csv 	
 ```
-containing the prediction of `target_feature` for all the pairs available in `myparams.In_file`, and
+which contains the prediction of `target_feature` for all the pairs available in `myparams.In_file`.
+
+The second output file is:
 ```
 output_ML/{In_file_label}/predicted_{In_file_label}_newpairs.csv 	
 ```
-that reports the predicted `target_feature` only for the pairs for which the exact calculation is not done. This is useful because the iterative training procedure has to pick the next $K_i$ candidates from this restricted list, in order to avoid repetitions.
+Similarly to the other file it reports the predicted `target_feature`, but it includes **only the new pairs** for which the exact value of `target_feature` is not already known from the exact calculations. This is *fundamental* because the iterative training procedure has to pick the next $K_i$ candidates from this restricted list, in order to avoid repetitions.
+
+
+#### End of the iterative step: exact calculation
+at the end of the iterative step the user has to calculate exactly the `target_feature` for the $K_i$ best pairs according to `step_4.py.
+read quick-run for more details
 
 
 #### myparams.py
 
-The supporting file `myparams.py` allows the user to set the correct hyperparameters. Here is reported the list with all the parameters that can be set in this way:
+The supporting file `myparams.py` allows the user to set the desired parameters and hyperparameters. Here is reported the list with all the parameters that can be set in this way:
 * **In_file**: name of the input file
 * **pretraining_classifier**: name of the pretraining file for the classifier
 * **pretraining_predictor**: name of the pretraining file for the predictor
@@ -187,7 +202,7 @@ The supporting file `myparams.py` allows the user to set the correct hyperparame
 
 #### Test the model
 
-Finally, I also provide two test codes to evaluate the results of the model:
+Finally, I also provide two test codes to evaluate the results of the ML model:
 * `test1.py` will compare the predicted target feature with its exact value, over the validation set that was not used to train the model
 * `test2.py` will perform the [SHAP](https://github.com/slundberg/shap) analysis for the trained model
 
@@ -198,18 +213,18 @@ The output of both tests will be stored in `output_ML/{In_file_label}/`.
 ## Quick run
 
 The first step is to correctly set the parameters in `myparams.py` in order to point to the correct location for the input files.  
-The most fundamental and necessary file is the database containing all the available pairs `In_data/{myparams.In_file}`. 
-Then in order to start the iterative procedure some initial observations are required. These can either be pretraining sets in `MLmodel/{myparams.pretraining_classifier}` and `MLmodel/{myparams.pretraining_predictor}` or alternatively some calculations over `In_data/{myparams.In_file}` that have to be stored in `exact_calculations/{In_file_label}/{myparams.calculations_classifier}` and `exact_calculations/{In_file_label}/{myparams.calculations_classifier}`.
+The most fundamental and necessary file is the dataframe containing all the available pairs `In_data/{myparams.In_file}`. 
+Then in order to start the iterative procedure some initial observations are required. These can either be pretraining sets in `MLmodel/{myparams.pretraining_classifier}` and `MLmodel/{myparams.pretraining_predictor}` or alternatively some calculations of pairs contained in `In_data/{myparams.In_file}` that must be stored in `exact_calculations/{In_file_label}/{myparams.calculations_classifier}` and `exact_calculations/{In_file_label}/{myparams.calculations_classifier}`.
 
-After this, it is possible to run a full iteration consisting of `step[1-4].py`.
-Finally this will produce the output file `output_ML/predicted_{In_file_label}_newpairs.csv` that contains the predicted `target_feature` for all the available pairs:
+After this, it is possible to run the first full iteration consisting of `step[1-4].py`.
+Finally, this will produce the output file `output_ML/predicted_{In_file_label}_newpairs.csv` that contains the predicted `target_feature` for all the available pairs:
 
 | conf | i | j | target_feature |
 |:----:|:-:|:-:|:--------------:|
 | ...  |...|...|...             |
 |      |   |   |                |
 
-the database contains only the pairs for which the exact calculation is not available and it is sorted based on the value of `target_feature`.
+the dataframe contains only the pairs for which the exact calculation is not available and it is sorted based on the value of `target_feature`.
 
 The final step of the iteration consists in calculating the exact value of `target_feature` for the best $K_i$ pairs, which corresponds to the first $K_i$ lines of `output_ML/predicted_{In_file_label}_newpairs.csv` if the target is a low value of `target_feature`.
 You can reiterate this procedure as many times as you want and add new input pairs at any iteration.  
@@ -220,7 +235,7 @@ In the [paper](https://www.nature.com/articles/s41467-023-39948-7), I discuss so
 ## Reproduce TLS results
 
 In order to reproduce the TLS result, I have provided the following [**Zenodo** directory](https://zenodo.org/record/8026630). 
-This directory contains the databases `QS_T{0062,007,0092}.feather` corresponding to the pairs that have been used for the TLS analysis with all their relevant features, at the three temperatures.
+This directory contains the dataframes `QS_T{0062,007,0092}.feather` corresponding to the pairs that have been used for the TLS analysis with all their relevant features, at the three temperatures.
 In combination with the `exact_calculations/*/*.csv` containing the results of the NEB calculations (provided in this repository), the TLS data can be processed using the pipeline discussed above to reproduce all the findings reported in the [paper](https://www.nature.com/articles/s41467-023-39948-7).
 
 Finally, in the directory `TLS_pairs_Khomenko_et_al_2020` I report the data corresponding to the smaller set of TLS pairs identified in *Khomenko et al. PRL 124.22 (2020): 225901*.
