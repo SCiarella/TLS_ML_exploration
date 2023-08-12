@@ -1,10 +1,13 @@
-<img src="./doc/fig_main.png" width="1100" />
+<img src="./doc/fig_highlight.png" width="1100" />
 
 # Finding defects in glasses through machine learning
 
+<img src="./doc/fig_main.png" width="1100" />
+
+
 *by Simone Ciarella, Dmytro Khomenko, Ludovic Berthier, Felix C. Mocanu, David R. Reichman, Camille Scalliet and Francesco Zamponi*
   
-Paper link: [**arXiv: 2212.05582**](https://arxiv.org/abs/2212.05582)
+Paper links: [** Nat Commun 14, 4229 (2023)**](https://www.nature.com/articles/s41467-023-39948-7) [**arXiv**](https://arxiv.org/abs/2212.05582)
 
 Structural defects control the kinetic, thermodynamic and mechanical properties of glasses. For instance, rare quantum tunneling two-level systems (TLS) govern the physics of glasses at very low temperatures. Because of their extremely low density, it is very hard to directly identify them in computer simulations. We introduce a machine learning approach to efficiently explore the potential energy landscape of glass models and identify desired classes of defects. We focus in particular on TLS and we design an algorithm that is able to rapidly predict the quantum splitting between any two amorphous configurations produced by classical simulations. This in turn allows us to shift the computational effort towards the collection and identification of a larger number of TLS, rather than the useless characterization of non-tunneling defects which are much more abundant. Finally, we interpret our machine learning model to understand how TLS are identified and characterized, thus giving direct physical insight into their microscopic nature. 
 
@@ -18,11 +21,11 @@ Structural defects control the kinetic, thermodynamic and mechanical properties 
 
 [**Installation**](#Installation)
 | [**Quick run**](#Quick-run)
-| [**Reproduce TLS results**](https://arxiv.org/abs/2212.05582)
+| [**Reproduce TLS results**](https://www.nature.com/articles/s41467-023-39948-7)
 
 
 
-The idea of this project is to use machine learning to **speed up** the exploration of the landscape of glassy materials or slow dynamics, with a particular focus on the *iterative training* scheme that we introduced.
+The idea of this project is to use machine learning to **speed up** the exploration of glassy landscape, that can be found in glassy materials or many other problems characterized by slow dynamics. This repository puts particular emphasis on the concept of *iterative training* that we introduced in the reference paper.
 State-to-state transitions like two-level systems are extremely interesting, but when the dynamics is slow they are very hard to find, and the situation is even worse for glassy systems, characterized by an exponential number of states.
 The problem is that often the trajectory of the system does not explore directly the targeted state-to-state transitions during the limited observation time.
 The ML model that we propose constructs all the pairs of states (even the one that the trajectory never crossed) and rapidly (<img src="https://latex.codecogs.com/svg.image?10^{-5}" /> s) predicts target crucial properties for the specific transition, thus estimating if the pair is one of the desired transitions and if precise calculation is needed. Overall this significantly reduces the computational load. 
