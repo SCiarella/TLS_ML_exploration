@@ -82,7 +82,7 @@ In summary, each of them accomplished the following task:
 * **step2.py**:  DW classification
 * **step3.py**:  *(Prediction)* [re-]train the predictor
 * **step4.py**:  prediction of the target property of all the pairs (i.e. the quantum splitting)
-* [*End of iteration step $i$*]
+* [*End of iteration step* $i$]
 
 
 Those codes run using the content of the `MLmodel/` directory.
