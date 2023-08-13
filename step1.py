@@ -14,7 +14,7 @@ import multiprocess as mp
 import myparams
 
 
-# This code takes all the available data and retrain the ML model according to the iterative training procedure 
+# This code takes all the available data and retrain the ML model [THE FILTER] according to the iterative training procedure 
 
 
 if __name__ == "__main__":
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         print('First time training the classifier')
         used_data = pd.DataFrame()
     
-    # Then I check the exact calculations to see the if new data are available (otherwise the iterative training procedure got stuck)
+    # Then I check the exact calculations to see the if new data are available 
     calculation_dir='./exact_calculations/{}'.format(In_label)
     if not os.path.isfile('{}/{}'.format(calculation_dir,myparams.calculations_classifier)):
         print('\n*(!)* Notice that there are no classification data\n')
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
 
     
-    # I also have to include the pre-training data, which I load now to see if overall we gained data
+    # I also have to include the pre-training data, which I now load to see if overall there are more data than the previous iteration (as expected)
     if os.path.isfile('MLmodel/{}'.format(myparams.pretraining_classifier)):
         pretrain_df = pd.read_feather('MLmodel/{}'.format(myparams.pretraining_classifier))
     else:
@@ -62,19 +62,19 @@ if __name__ == "__main__":
 
     
     #************
-    # * Check wether or not you should retrain the model
+    # * Check if the model needs to be retrained (you should have collected new data)
     if(len(pretrain_df)+len(class_0_pairs)+len(class_1_pairs))>len(used_data):
         print('\n*****\nThe model was trained using {} data and now we could use:\n\t{} from pretraining (both classes)\n\t{} calculated class-0\n\t{} calculated class-1'.format(len(used_data),len(pretrain_df),len(class_0_pairs),len(class_1_pairs)))
     else:
         print('All the data available have been already used to train the model')
         sys.exit()
     
-    # If we are not exited, it means that we have more NEB data to use to retrain the model
+    # If the program did not terminate, it means that there are new data and it is worth to retrain the model
     
     if use_new_calculations:        
 
-        # For these new NEB informations, I look for the corresponding input pair 
-        # so I need to load the input features for all of them
+        # For the new target_feature information, we look for the corresponding input pair 
+        # so we need to load the input features for all of them
         try:
             all_pairs_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
             if ndecimals>0:
@@ -85,10 +85,11 @@ if __name__ == "__main__":
             sys.exit()
 
         # split this task between parallel workers
+        # Notice that we are first processing the bad pairs (class 0)
         elements_per_worker=20
         chunks=[class_0_pairs.iloc[i:i + elements_per_worker] for i in range(0, len(class_0_pairs), elements_per_worker)]
         n_chunks = len(chunks)
-        print('\nWe are going to submit {} chunks for the non dw'.format(n_chunks))
+        print('\nWe are going to submit {} chunks for the bad pairs'.format(n_chunks))
         
         
         def process_chunk(chunk):
@@ -110,51 +111,51 @@ if __name__ == "__main__":
                     worker_df = pd.concat([worker_df,a])
             return worker_df
     
-        print('collecting info for NEB pairs')
+        print('collecting info for bad pairs')
         # Initialize the pool
         pool = mp.Pool(mp.cpu_count())
         # *** RUN THE PARALLEL FUNCTION
         results = pool.map(process_chunk, [chunk for chunk in chunks] )
         pool.close()
         # and add all the new df to the final one
-        non_dw_df=pd.DataFrame()
+        badpairs_df=pd.DataFrame()
         for df_chunk in results:
-            non_dw_df = pd.concat([non_dw_df,df_chunk])
-        non_dw_df['class']=0
-        print('Constructed the database of {} non-dw from the new pairs'.format(len(non_dw_df)))
+            badpairs_df = pd.concat([badpairs_df,df_chunk])
+        badpairs_df['class']=0
+        print('Constructed the database of {} bad pairs, from the new data'.format(len(badpairs_df)))
         
-        # *** now get the dw using the same function
+        # *** now get the good pairs using the same routine
         chunks=[class_1_pairs.iloc[i:i + elements_per_worker] for i in range(0, len(class_1_pairs), elements_per_worker)]
         n_chunks = len(chunks)
-        print('\nWe are going to submit {} chunks for the dw'.format(n_chunks))
+        print('\nWe are going to submit {} chunks for the good data'.format(n_chunks))
         pool = mp.Pool(mp.cpu_count())
         results = pool.map(process_chunk, [chunk for chunk in chunks] )
         pool.close()
-        dw_df=pd.DataFrame()
+        goodpairs_df=pd.DataFrame()
         for df_chunk in results:
-            dw_df = pd.concat([dw_df,df_chunk])
-        dw_df['class']=1
-        print('Constructed the database of {} dw from the new pairs'.format(len(dw_df)))
+            goodpairs_df = pd.concat([goodpairs_df,df_chunk])
+        goodpairs_df['class']=1
+        print('Constructed the database of {} good pairs, from the new data'.format(len(goodpairs_df)))
     else:
-        print('(We are not using data from NEB, but only pretraining)') 
-        dw_df = pd.DataFrame()
-        non_dw_df = pd.DataFrame()
+        print('(We are not using data from calculations, but only the pretraining set)') 
+        goodpairs_df = pd.DataFrame()
+        badpairs_df = pd.DataFrame()
     
     
     # *******
     # add the pretrained data (if any)
     if len(pretrain_df)>0:
-        dw_df = pd.concat([dw_df,pretrain_df[pretrain_df['class']>0]])
-        dw_df=dw_df.drop_duplicates()
-        non_dw_df = pd.concat([non_dw_df,pretrain_df[pretrain_df['class']<1]])
-        non_dw_df=non_dw_df.drop_duplicates()
-    qs_df = pd.concat([dw_df,non_dw_df])
+        goodpairs_df = pd.concat([goodpairs_df,pretrain_df[pretrain_df['class']>0]])
+        goodpairs_df=goodpairs_df.drop_duplicates()
+        badpairs_df = pd.concat([badpairs_df,pretrain_df[pretrain_df['class']<1]])
+        badpairs_df=badpairs_df.drop_duplicates()
+    qs_df = pd.concat([goodpairs_df,badpairs_df])
 
 
-    # set isdw col as binary
+    # set class column as binary
     qs_df['class']=qs_df['class'].astype(bool)
-    dw_df['class']=dw_df['class'].astype(bool)
-    non_dw_df['class']=non_dw_df['class'].astype(bool)
+    goodpairs_df['class']=goodpairs_df['class'].astype(bool)
+    badpairs_df['class']=badpairs_df['class'].astype(bool)
 
     
     # This is the new training df that will be stored at the end 
@@ -168,24 +169,24 @@ if __name__ == "__main__":
             print('but the model is not in {}, so I train anyway'.format(model_path),flush=True)
     
     
-    # Create a balanced subset with same number of dw and non-dw
-    N = min(len(dw_df),len(non_dw_df))
-    print('Having {} dw and {} non-dw, we select only {} of each for the classifier'.format(len(dw_df),len(non_dw_df),N))
+    # Create a balanced subset with same number of good and bad pairs
+    N = min(len(goodpairs_df),len(badpairs_df))
+    print('Having {} good and {} bad pairs, we select only {} of each, to balance the classifier'.format(len(goodpairs_df),len(badpairs_df),N))
     # and split a part of data for validation
     Nval = int(myparams.validation_split*N)
     Ntrain = N -Nval
     # shuffle
-    dw_df=dw_df.sample(frac=1, random_state=20, ignore_index=True)
-    non_dw_df=non_dw_df.sample(frac=1, random_state=20, ignore_index=True)
+    goodpairs_df=goodpairs_df.sample(frac=1, random_state=20, ignore_index=True)
+    badpairs_df=badpairs_df.sample(frac=1, random_state=20, ignore_index=True)
     # and slice
-    training_set = pd.concat([dw_df.iloc[:Ntrain],non_dw_df.iloc[:Ntrain]])
-    validation_set = pd.concat([dw_df.iloc[Ntrain:N],non_dw_df.iloc[Ntrain:N]])
+    training_set = pd.concat([goodpairs_df.iloc[:Ntrain],badpairs_df.iloc[:Ntrain]])
+    validation_set = pd.concat([goodpairs_df.iloc[Ntrain:N],badpairs_df.iloc[Ntrain:N]])
     # and reshuffle
     training_set = training_set.sample(frac=1, random_state=20, ignore_index=True)
     validation_set = validation_set.sample(frac=1, random_state=20, ignore_index=True)
     
     
-    print('\nFrom the overall %d data we prepare:\n\t- training set of %d  (half dw and half non-dw) \n\t- validation set of %d  (half dw and half non-dw)\n\n'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
+    print('\nFrom the overall %d data we prepare:\n\t- training set of %d  (half good and half bad) \n\t- validation set of %d  (half good and half bad)\n\n'%(len(new_training_df),len(training_set),len(validation_set) ),flush=True)
     print(training_set)
 
     
@@ -206,7 +207,7 @@ if __name__ == "__main__":
 
     
     # train
-    # * I am excluding KNN because it is problematic
+    # * I am excluding the KNN model because it is problematic
     predictor = TabularPredictor(label='class', path=model_path, eval_metric='accuracy').fit(TabularDataset(training_set.drop(columns=['i','j','conf'])), time_limit=time_limit,  presets=presets,excluded_model_types=['KNN'])
     
     

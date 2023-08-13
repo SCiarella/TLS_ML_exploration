@@ -15,11 +15,9 @@ import multiprocess as mp
 import myparams
 import dask.dataframe as dd
 
-# This code runs the dw vs non-dw classifier over all the pairs 
 
+# This code runs the good vs bad pair classifier over all the pairs available 
 
-# The absolute position is not interesting, so I only report the distance from particle 0
-# notice that you have to evalaute the distance using PBC !
 
 def ensure_dir(filename):
     dirname = os.path.dirname(filename)
@@ -58,7 +56,7 @@ if __name__ == "__main__":
         print('Error: I am looking for the classifier in {}, but I can not find it. You probably have to run step1 before this'.format(classifier_save_path))
         sys.exit()
     else:
-        print('\nUsing the DW filter trained in {}'.format(classifier_save_path))
+        print('\nUsing the filter trained in {}'.format(classifier_save_path))
     
     print('\n* Classifier loading',flush=True)
     classifier = TabularPredictor.load(classifier_save_path) 

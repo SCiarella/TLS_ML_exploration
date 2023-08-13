@@ -17,7 +17,7 @@ import matplotlib
 import myparams
 
 
-# This code validates the performances of the qs predictor
+# This code validates the performances of the target feature predictor
 
 if __name__ == "__main__":
     In_label = myparams.In_file.split('/')[-1].split('.')[0]

@@ -16,7 +16,7 @@ import multiprocess as mp
 import myparams
 
 
-# This code takes all the available data and retrain the ML model according to the iterative training procedure 
+# This code takes all the available data and retrains the ML model according to the iterative training procedure 
 
 
 if __name__ == "__main__":
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         print('All the data available have been already used to train the model')
         sys.exit()
     
-    # If we are not exited, it means that we have more qs data to use to retrain the model
+    # If we are not exited, it means that we have more data, thus it makes sense to retrain the model
     if use_new_calculations:        
         # split this task between parallel workers
         elements_per_worker=100
@@ -101,7 +101,7 @@ if __name__ == "__main__":
                     print('\nWarning: we do not have {} in class-1'.format(row))
             return worker_df
             
-        print('collecting info for NEB pairs')
+        print('collecting info for pairs')
         # Initialize the pool
         pool = mp.Pool(mp.cpu_count())
         # *** RUN THE PARALLEL FUNCTION
@@ -145,13 +145,13 @@ if __name__ == "__main__":
     new_training_df['10tominus_tg'] = new_training_df['target_feature'].apply(lambda x: -np.log10(x))
     
     
-    # Pick a part of this pairs for validation
+    # Split a part of this pairs for validation
     N = len(new_training_df)
     Nval = int(myparams.validation_split*N)
     Ntrain = N -Nval
     # shuffle
     new_training_df=new_training_df.sample(frac=1, random_state=20, ignore_index=True)
-    # (!) To be compatible in feather format, I will replace the 'NotAvail' entries with 0
+    # (!) To be compatible with feather format, I will replace the 'NotAvail' entries with 0
     new_training_df = new_training_df.replace('NotAvail',0)
     # and slice
     training_set = new_training_df.iloc[:Ntrain]
