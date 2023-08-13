@@ -188,7 +188,7 @@ As a reference, for the [TLS](https://www.nature.com/articles/s41467-023-39948-7
 After performing the new measurements the iteration step is officially concluded, and the user can go back to step-1. It is also possible (and even suggested) to collect new data in the meantime. In this case the next iteration will restart from step-0, because the new data needs to be processed into the feature dataframe.
 The users can perform as many iterations as they want. I suggest to keep track of the percentage of positive findings over time, and stop iterating when this rate gets too low. In the TLS reference, I performed $\mathcal{O}(10)$ iterations.
 
-Refer to the [TLS paper](https://www.nature.com/articles/s41467-023-39948-7) and the [**Quick run**](#Quick-run) section to get more details.
+Refer to the [TLS paper](https://www.nature.com/articles/s41467-023-39948-7) and the [**Quick run**](#quick-run) section to get more details.
 
 
 #### myparams.py
