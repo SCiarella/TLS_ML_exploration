@@ -179,9 +179,16 @@ output_ML/{In_file_label}/predicted_{In_file_label}_newpairs.csv
 Similarly to the other file it reports the predicted `target_feature`, but it includes **only the new pairs** for which the exact value of `target_feature` is not already known from the exact calculations. This is *fundamental* because the iterative training procedure has to pick the next $K_i$ candidates from this restricted list, in order to avoid repetitions.
 
 
-#### End of the iterative step: exact calculation
-at the end of the iterative step the user has to calculate exactly the `target_feature` for the $K_i$ best pairs according to `step_4.py.
-read quick-run for more details
+#### End of the iteration step: exact calculation
+
+Finally, at the end of each iteration step the user has to perform the analysis of `target_feature` for a new set of pairs, following the indications of `output_ML/{In_file_label}/predicted_{In_file_label}_newpairs.csv`.  
+Noticeably, this operation will not be time consuming since the role of the ML model is to identify *good* pairs to analyze, while excluding most of them. The user has to select the number $K_i$ of new pairs to analyze each step, according to the specific details of the problem.    
+As a reference, for the [TLS](https://www.nature.com/articles/s41467-023-39948-7) I measure `target_feature` (the quantum splitting) only for the $K=500$ top (new) pairs, according to `step_4.py`. Notice that this number $K$ is $< 0.00001\%$ of the total number of pairs. And the ML approach is so precise that we have been able to identify an unexpectedly large number of TLS, that would have been an insurmountable obstacle for classical non-ML methods. 
+
+After performing the new measurements the iteration step is officially concluded, and the user can go back to step-1. It is also possible (and even suggested) to collect new data in the meantime. In this case the next iteration will restart from step-0, because the new data needs to be processed into the feature dataframe.
+The users can perform as many iterations as they want. I suggest to keep track of the percentage of positive findings over time, and stop iterating when this rate gets too low. In the TLS reference, I performed $\mathcal{O}(10)$ iterations.
+
+Refer to the [TLS paper](https://www.nature.com/articles/s41467-023-39948-7) and the [**Quick run**](#Quick-run) section to get more details.
 
 
 #### myparams.py
