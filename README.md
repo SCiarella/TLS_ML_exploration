@@ -19,9 +19,9 @@ Structural defects control the kinetic, thermodynamic and mechanical properties 
 
 ## State-to-state transitions with machine learning
 
-[**Installation**](#Installation)
-| [**Quick run**](#Quick-run)
-| [**Reproduce TLS results**](#Reproduce-TLS-results)
+[**Installation**](#installation)
+| [**Quick run**](#quick-run)
+| [**Reproduce TLS results**](#reproduce-tls-results)
 
 
 
@@ -78,11 +78,12 @@ The repository consists a series of Python codes named `step[1-4].py`, that when
 
 In summary, each of them accomplished the following task:
 * *(not included)* **step0**:  data collection and preprocessing
-* **step1.py**:  *(Filtering)* [re-]train the double well (DW) classifier
-* **step2.py**:  DW classification
-* **step3.py**:  *(Prediction)* [re-]train the predictor
-* **step4.py**:  prediction of the target property of all the pairs (i.e. the quantum splitting)
-* [*End of iteration step* $i$]
+* [**step1.py**](#step-1:-training-the-classifier):  *(Filtering)* [re-]train the double well (DW) classifier
+* [**step2.py**](#step-2:-classifier):  DW classification
+* [**step3.py**](#step-3:-training-the-predictor):  *(Prediction)* [re-]train the predictor
+* [**step4.py**](#step-4:-predicting-the-target-feature):  prediction of the target property of all the pairs (i.e. the quantum splitting)
+* [*End of iteration step* $i$](#end-of-the-iteration-step:-new-calculations)
+)
 
 
 Those codes run using the content of the `MLmodel/` directory.
@@ -179,7 +180,7 @@ output_ML/{In_file_label}/predicted_{In_file_label}_newpairs.csv
 Similarly to the other file it reports the predicted `target_feature`, but it includes **only the new pairs** for which the exact value of `target_feature` is not already known from the exact calculations. This is *fundamental* because the iterative training procedure has to pick the next $K_i$ candidates from this restricted list, in order to avoid repetitions.
 
 
-#### End of the iteration step: exact calculation
+#### End of the iteration step: New calculations
 
 Finally, at the end of each iteration step the user has to perform the analysis of `target_feature` for a new set of pairs, following the indications of `output_ML/{In_file_label}/predicted_{In_file_label}_newpairs.csv`.  
 Noticeably, this operation will not be time consuming since the role of the ML model is to identify *good* pairs to analyze, while excluding most of them. The user has to select the number $K_i$ of new pairs to analyze each step, according to the specific details of the problem.    
