@@ -83,7 +83,6 @@ In summary, each of them accomplished the following task:
 * [**step3.py**](#step-3:-training-the-predictor):  *(Prediction)* [re-]train the predictor
 * [**step4.py**](#step-4:-predicting-the-target-feature):  prediction of the target property of all the pairs (i.e. the quantum splitting)
 * [*End of iteration step* $i$](#end-of-the-iteration-step:-new-calculations)
-)
 
 
 Those codes run using the content of the `MLmodel/` directory.
