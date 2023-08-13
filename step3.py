@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     
     # then load the info about all the pairs
-    pairs_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
+    pairs_df = pd.read_feather('In_data/{}'.format(myparams.In_file))
     # and format in the correct way
     if ndecimals>0:
         pairs_df = pairs_df.round(decimals=ndecimals)

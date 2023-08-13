@@ -76,7 +76,7 @@ if __name__ == "__main__":
         # For the new target_feature information, we look for the corresponding input pair 
         # so we need to load the input features for all of them
         try:
-            all_pairs_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
+            all_pairs_df = pd.read_feather('In_data/{}'.format(myparams.In_file))
             if ndecimals>0:
                 all_pairs_df.i = all_pairs_df.i.round(ndecimals)
                 all_pairs_df.j = all_pairs_df.j.round(ndecimals)

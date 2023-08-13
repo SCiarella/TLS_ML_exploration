@@ -36,7 +36,7 @@ if __name__ == "__main__":
     
     # *************
     # (1) Load the preprocessed data 
-    new_df = pd.read_feather('IN_data/{}'.format(myparams.In_file))
+    new_df = pd.read_feather('In_data/{}'.format(myparams.In_file))
     
     print('\n\t@@@@ Overall we have {} pairs'.format(len(new_df)))
 
