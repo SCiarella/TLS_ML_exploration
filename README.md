@@ -74,15 +74,15 @@ This package is *ready to run* and it just needs your input data.
 
 <img src="./doc/fig_steps.png" width="1100" />
 
-The repository consists of a series of Python codes named `step[1-4].py`. 
+The repository consists a series of Python codes named `step[1-4].py`, that when executed in succession, perform **one step of the iterative procedure** to study state-to-state transitions. 
 
-In brief, each of them has the following task:
+In summary, each of them accomplished the following task:
 * *(not included)* **step0**:  data collection and preprocessing
-
 * **step1.py**:  *(Filtering)* [re-]train the double well (DW) classifier
 * **step2.py**:  DW classification
 * **step3.py**:  *(Prediction)* [re-]train the predictor
 * **step4.py**:  prediction of the target property of all the pairs (i.e. the quantum splitting)
+* [*End of iteration step $i$*]
 
 
 Those codes run using the content of the `MLmodel/` directory.
